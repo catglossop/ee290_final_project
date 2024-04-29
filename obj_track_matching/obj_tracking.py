@@ -7,11 +7,6 @@ import copy
 import time
 
 
-
-## TODO 
-
-# 1. Improve the segmentation polygon to have improved update (Kalman Filtering)
-# 2. Update with motion vector modelling as well (help to perform soft update)
 data_path = "/Users/catherineglossop/ee290_final_project/data/SegTrackv2"
 gt_path = os.path.join(data_path, "GroundTruth")
 input_path = os.path.join(data_path, "JPEGImages")
@@ -19,11 +14,11 @@ test = "bird_of_paradise"
 test_idx = None
 input_test_path = os.path.join(input_path, test)
 gt_test_path = os.path.join(gt_path, test)
-VISUALIZE = False 
+VISUALIZE = True
 LK = False
 SEG_PERIOD = 15
 
-os.makedirs(f"sampled_output_{test}", exist_ok=True)
+os.makedirs(f"output/sampled_output_{test}", exist_ok=True)
 
 # Load in the input data 
 gif_frames = []
@@ -321,9 +316,11 @@ ax[1].set_title("Loop Time vs Frame")
 plt.show()
 
 if len(gif_frames) != 0:
-    iio.mimsave(f'sampled_output_{test}/{test}_matching.gif', gif_frames)
-    iio.mimsave(f'sampled_output_{test}/{test}_mask.gif', gif_mask_frames)
-    iio.mimsave(f'sampled_output_{test}/{test}_gt.gif', seg_frames)
+    print("Saving gifs")
+    iio.mimsave(f'output/sampled_output_{test}/{test}_matching.gif', gif_frames)
+    iio.mimsave(f'output/sampled_output_{test}/{test}_mask.gif', gif_mask_frames)
+    iio.mimsave(f'output/sampled_output_{test}/{test}_gt.gif', seg_frames)
 if LK:
-    iio.mimsave(f'sampled_output_{test}/{test}_opt_flow.gif', opt_flow_frames)
+    iio.mimsave(f'output/sampled_output_{test}/{test}_opt_flow.gif', opt_flow_frames)
+
 print("Done")
