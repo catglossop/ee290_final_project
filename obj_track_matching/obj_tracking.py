@@ -15,7 +15,6 @@ test_idx = None
 input_test_path = os.path.join(input_path, test)
 gt_test_path = os.path.join(gt_path, test)
 VISUALIZE = True
-LK = False
 SEG_PERIOD = 15
 
 os.makedirs(f"output/sampled_output_{test}", exist_ok=True)
@@ -82,30 +81,6 @@ mask = mask.astype(np.uint8)
 
 curr_kps, curr_descs = orb.detectAndCompute(curr_frame, mask)
 
-if LK:
-    ### LUCAS KANADE OPTICAL FLOW ###
-    # Get the initial features in the first image
-    feature_params = dict( maxCorners = 100,
-    qualityLevel = 0.3,
-    minDistance = 7,
-    blockSize = 7 )
-
-    # Parameters for lucas kanade optical flow
-    lk_params = dict( winSize = (15, 15),
-    maxLevel = 2,
-    criteria = (cv.TERM_CRITERIA_EPS | cv.TERM_CRITERIA_COUNT, 10, 0.03))
-    
-    # Create some random colors
-    color = np.random.randint(0, 255, (100, 3))
-    
-    # Take first frame and find corners in it
-    curr_gray = cv.cvtColor(curr_frame, cv.COLOR_BGR2GRAY)
-    curr_lk = cv.goodFeaturesToTrack(curr_gray, mask = mask, **feature_params)
-    
-    # Create a mask image for drawing purposes
-    lk_mask = np.zeros_like(curr_frame)
-    ##########################################################
-
 while frame_idx < len(input_frames)-2: 
     # Increment the frame idx
     frame_idx += 1
@@ -167,34 +142,6 @@ while frame_idx < len(input_frames)-2:
         cv.imshow("Seg", mask)
         cv.waitKey(0)
         cv.destroyAllWindows()
-
-
-    if LK:
-        prev_gray = curr_gray
-        prev_lk = curr_lk
-        ### LUCAS KANADE OPTICAL FLOW ###
-        curr_gray = cv.cvtColor(curr_frame, cv.COLOR_BGR2GRAY)
-        curr_lk, st, err = cv.calcOpticalFlowPyrLK(prev_gray, curr_gray, prev_lk, mask, **lk_params)
-
-        # Select good points
-        if curr_lk is not None:
-            curr_lk_good = curr_lk[st==1]
-            prev_lk_good = prev_lk[st==1]
-    
-        # draw the tracks
-        curr_frame_lk = curr_frame.copy()
-        for i, (new, old) in enumerate(zip(curr_lk_good, prev_lk_good)):
-            a, b = new.ravel()
-            c, d = old.ravel()
-            lk_mask = cv.line(lk_mask, (int(a), int(b)), (int(c), int(d)), color[i].tolist(), 2)
-            curr_frame_lk = cv.circle(curr_frame_lk, (int(a), int(b)), 5, color[i].tolist(), -1)
-            viz_img_lk = cv.add(curr_frame_lk, lk_mask)
-            opt_flow_frames.append(viz_img_lk)
-            cv.imshow('optical_flow', viz_img_lk)
-            cv.waitKey(0)
-            cv.destroyAllWindows()
-
-        ##########################################
 
     # Get the orb features 
     curr_kps, curr_descs = orb.detectAndCompute(curr_frame, None)
@@ -320,7 +267,5 @@ if len(gif_frames) != 0:
     iio.mimsave(f'output/sampled_output_{test}/{test}_matching.gif', gif_frames)
     iio.mimsave(f'output/sampled_output_{test}/{test}_mask.gif', gif_mask_frames)
     iio.mimsave(f'output/sampled_output_{test}/{test}_gt.gif', seg_frames)
-if LK:
-    iio.mimsave(f'output/sampled_output_{test}/{test}_opt_flow.gif', opt_flow_frames)
 
 print("Done")
