@@ -93,14 +93,15 @@ class MultiObjectTrackingNode:
             self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
             self.loop_time_per_fps.append(np.mean(self.loop_time))
         
+
             fig, ax = plt.subplots(1,2, figsize=(20,10))
             print(len(self.periods))
             print(len(self.ious_per_fps))
             print(len(self.ious_gt_per_fps))
             print(len(self.loop_time_per_fps))
-            ax[0].plot(self.periods, self.ious_per_fps)
-            ax[0].plot(self.periods, self.ious_gt_per_fps)
-            ax[1].plot(self.periods, self.loop_time_per_fps)
+            ax[0].plot(self.periods[:len(self.ious_per_fps)], self.ious_per_fps)
+            ax[0].plot(self.periods[:len(self.ious_per_fps)], self.ious_gt_per_fps)
+            ax[1].plot(self.periods[:len(self.ious_per_fps)], self.loop_time_per_fps)
             ax[0].legend(["Estimated IOU", "GT IOU"])
             ax[0].set_xlabel("Segmentation Period")
             ax[1].set_xlabel("Segmentation Period")
