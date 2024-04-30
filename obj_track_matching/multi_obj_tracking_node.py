@@ -186,9 +186,9 @@ class MultiObjectTrackingNode:
                 delta = n_seg_pts - n_prev_seg_pts
 
                 # Get IOU weight
-                prev_mask = cv.fillPoly(np.zeros_like(curr_seg), [np.flip(n_prev_seg_pts.astype(np.int64), axis=2)], 255)
-                self.curr_mask = cv.fillPoly(np.zeros_like(curr_seg), [np.flip(n_seg_pts.astype(np.int64), axis=2)], 255)
-                iou = np.sum(np.logical_and(prev_mask, curr_mask)) / np.sum(np.logical_or(prev_mask, curr_mask))
+                self.prev_mask = cv.fillPoly(np.zeros_like(self.curr_seg), [np.flip(n_prev_seg_pts.astype(np.int64), axis=2)], 255)
+                self.curr_mask = cv.fillPoly(np.zeros_like(self.curr_seg), [np.flip(n_seg_pts.astype(np.int64), axis=2)], 255)
+                iou = np.sum(np.logical_and(self.prev_mask, self.curr_mask)) / np.sum(np.logical_or(self.prev_mask, self.curr_mask))
                 ious.append(iou)
                 if iou < 0.5:
                     print("no_update")
