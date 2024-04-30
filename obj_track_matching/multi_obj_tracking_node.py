@@ -1,4 +1,4 @@
-import os 
+import os, glob
 import cv2 as cv
 import numpy as np
 import imageio as iio
@@ -46,6 +46,9 @@ class MultiObjectTrackingNode:
         self.gt_seg = None
         self.initialized = False
 
+        for f in glob.glob("output/perf_eval_*.jpg"):
+            os.remove(f)
+
     def seg_callback(self, msg):
         self.prev_seg = self.curr_seg
         self.curr_seg = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
@@ -59,11 +62,11 @@ class MultiObjectTrackingNode:
     
     def reset_callback(self, msg):
 
-        print("IOU: ", np.mean(self.IOU_est))
-        print("GT IOU: ", np.mean(self.IOU_gt))
-        print("Loop time: ", np.mean(self.loop_time))
+        # print("IOU: ", np.mean(self.IOU_est))
+        # print("GT IOU: ", np.mean(self.IOU_gt))
+        # print("Loop time: ", np.mean(self.loop_time))
         if self.VISUALIZE:
-            print("Saving plot to output/perf_eval_{}.png".format(self.eval_count))
+            # print("Saving plot to output/perf_eval_{}.png".format(self.eval_count))
 
             fig, ax = plt.subplots(1,2)
             ax[0].plot(self.IOU_est)
@@ -77,6 +80,7 @@ class MultiObjectTrackingNode:
             ax[0].set_title("IOU vs Frame")
             ax[1].set_title("Loop Time vs Frame")
             plt.savefig(f'output/perf_eval_{self.eval_count}.png')
+            self.eval_count += 1
 
         self.IOU_est = []
         self.IOU_gt = []
@@ -100,7 +104,6 @@ class MultiObjectTrackingNode:
 
                 # Turn the points into an array
                 self.seg_pts[nseg] = np.array([Px_min[:2], Py_max[:2], Px_max[:2], Py_min[:2]])
-                print(self.seg_pts[nseg])
                 self.seg_pts[nseg] = self.seg_pts[nseg].reshape(-1, 1, 2)
             
             if self.DEBUG:
@@ -180,7 +183,6 @@ class MultiObjectTrackingNode:
                     matrix, _ = cv.findHomography(u_pts, v_pts, cv.RANSAC, 5.0)
                     n_seg_pts = cv.perspectiveTransform(n_seg_pts.astype(np.float32), matrix)
                 except: 
-                    print("Homography failed")
                     return
 
                 # Perform the transformation on the segmentation zone to get the new segmentation zone
@@ -198,7 +200,6 @@ class MultiObjectTrackingNode:
                 iou = np.sum(np.logical_and(self.prev_mask, self.curr_mask)) / np.sum(np.logical_or(self.prev_mask, self.curr_mask))
                 ious.append(iou)
                 if iou < 0.5:
-                    print("no_update")
                     n_seg_pts = n_prev_seg_pts
                     continue
                 n_seg_pts = n_prev_seg_pts + iou*delta
