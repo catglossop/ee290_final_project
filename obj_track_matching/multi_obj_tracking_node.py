@@ -73,9 +73,8 @@ class MultiObjectTrackingNode:
         self.IOU_gt = []
         self.loop_time = []
 
-    
-
     def input_callback(self, msg):
+
         self.prev_frame = self.curr_frame
         self.curr_frame = self.cv_bridge.imgmsg_to_cv2(msg)
         self.viz_img = self.curr_frame.copy()
@@ -107,6 +106,9 @@ class MultiObjectTrackingNode:
                 self.curr_kps_descs[nseg] = (curr_kps, curr_descs)
 
         elif not self.seg_updated and self.curr_seg != None and self.curr_frame != None: 
+            self.prev_frame = self.curr_frame
+            self.curr_frame = self.cv_bridge.imgmsg_to_cv2(msg)
+            self.viz_img = self.curr_frame.copy()
 
             self.prev_kps_descs = self.curr_kps_descs
 
