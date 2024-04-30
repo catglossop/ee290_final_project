@@ -60,7 +60,7 @@ class FakeCameraNode:
         self.image_msg = Image()
         self.bridge = CvBridge()
 
-        self.seg_period = 15
+        self.seg_period = 100
         self.seg_frames = combined_frames[::self.seg_period]
         self.viz_combined_frames = viz_combined_frames[::self.seg_period]
         self.frame_count = 0
