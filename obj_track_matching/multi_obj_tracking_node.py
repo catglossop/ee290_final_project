@@ -17,8 +17,8 @@ class MultiObjectTrackingNode:
 
     def __init__(self):
 
-        self.VISUALIZE = False
-        self.DEBUG = True
+        self.VISUALIZE = True
+        self.DEBUG = False
         self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
         self.gt_sub = rospy.Subscriber("/ground_truth/image_raw", Image, self.gt_callback)
         self.input_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.input_callback)
