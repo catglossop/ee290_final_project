@@ -86,7 +86,7 @@ def main():
             fake_camera_node.seg_count = 0
         fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
-        if fake_camera_node.frame_count % self.seg_period == 0:
+        if fake_camera_node.frame_count % fake_camera_node.seg_period == 0:
             fake_camera_node.seg_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.seg_frames[fake_camera_node.seg_count], "passthrough")
             fake_camera_node.viz_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.viz_combined_frames[fake_camera_node.seg_count], "passthrough")
             fake_camera_node.seg_pub.publish(fake_camera_node.seg_msg)
