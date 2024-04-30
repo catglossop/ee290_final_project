@@ -86,6 +86,7 @@ class MultiObjectTrackingNode:
         self.eval_count += 1
         print(self.eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
+            print(self.IOU_gt)
             print(self.ious_per_fps)
             print(self.ious_gt_per_fps)
             print(self.loop_time_per_fps)
@@ -233,8 +234,6 @@ class MultiObjectTrackingNode:
             self.loop_time.append((self.end-self.start)*1000)
             self.IOU_est.append(np.array(ious).mean())
             self.IOU_gt.append(np.array(ious_gt).mean())
-            print(ious_gt)
-
 
             self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask_out, encoding="passthrough")
             self.mask_pub.publish(self.mask_img)
