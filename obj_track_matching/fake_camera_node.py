@@ -60,7 +60,7 @@ class FakeCameraNode:
         self.image_msg = Image()
         self.bridge = CvBridge()
 
-        self.seg_period = 100
+        self.seg_period = 60
         self.seg_frames = combined_frames[::self.seg_period]
         self.viz_combined_frames = viz_combined_frames[::self.seg_period]
         self.frame_count = 0
@@ -81,7 +81,7 @@ def main():
 
 
     while not rospy.is_shutdown():
-        if fake_camera_node.frame_count % len(fake_camera_node.input_frames)-1 == 0:
+        if fake_camera_node.frame_count % len(fake_camera_node.input_frames) == 0:
             fake_camera_node.reset_pub.publish(Empty())
             fake_camera_node.frame_count = 0
             fake_camera_node.seg_count = 0
