@@ -55,20 +55,21 @@ class MultiObjectTrackingNode:
         print("IOU: ", np.mean(self.IOU_est))
         print("GT IOU: ", np.mean(self.IOU_gt))
         print("Loop time: ", np.mean(self.loop_time))
-        print("Saving plot to output/perf_eval_{}.png".format(self.eval_count))
+        if self.VISUALIZE:
+            print("Saving plot to output/perf_eval_{}.png".format(self.eval_count))
 
-        fig, ax = plt.subplots(1,2)
-        ax[0].plot(self.IOU_est)
-        ax[0].plot(self.IOU_gt)
-        ax[1].plot(self.loop_time)
-        ax[0].legend(["Estimated IOU", "GT IOU", "loop time"])
-        ax[0].set_xlabel("Frame")
-        ax[0].set_ylabel("IOU")
-        ax[1].set_xlabel("Frame")
-        ax[1].set_ylabel("Time (ms)")
-        ax[0].set_title("IOU vs Frame")
-        ax[1].set_title("Loop Time vs Frame")
-        plt.savefig(f'output/perf_eval_{self.eval_count}.png')
+            fig, ax = plt.subplots(1,2)
+            ax[0].plot(self.IOU_est)
+            ax[0].plot(self.IOU_gt)
+            ax[1].plot(self.loop_time)
+            ax[0].legend(["Estimated IOU", "GT IOU", "loop time"])
+            ax[0].set_xlabel("Frame")
+            ax[0].set_ylabel("IOU")
+            ax[1].set_xlabel("Frame")
+            ax[1].set_ylabel("Time (ms)")
+            ax[0].set_title("IOU vs Frame")
+            ax[1].set_title("Loop Time vs Frame")
+            plt.savefig(f'output/perf_eval_{self.eval_count}.png')
 
         self.IOU_est = []
         self.IOU_gt = []
@@ -136,7 +137,7 @@ class MultiObjectTrackingNode:
                         self.viz_img = cv.circle(self.viz_img, (n_seg_pts[i,0,1], n_seg_pts[i,0,0]), 5, color=self.seg_color[(nseg-1)+self.num_segs].tolist(), thickness=-1)
                 
                     self.viz_img = cv.putText(self.viz_img, f"Segmentation {nseg}", (n_init_seg_pts[0,0,1], n_init_seg_pts[0,0,0]), cv.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv.LINE_AA)
-                    self.viz_msg = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="passthrough")
+                    self.viz_msg = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="bgr8")
                     self.annotate_pub.publish(self.viz_msg)
 
                 # Find the set of points in the segmentation zone with good correspondences
@@ -160,8 +161,8 @@ class MultiObjectTrackingNode:
                 try: 
                     matrix, _ = cv.findHomography(u_pts, v_pts, cv.RANSAC, 5.0)
                     n_seg_pts = cv.perspectiveTransform(n_seg_pts.astype(np.float32), matrix)
-                
                 except: 
+                    print("Homography failed")
                     return
 
                 # Perform the transformation on the segmentation zone to get the new segmentation zone
