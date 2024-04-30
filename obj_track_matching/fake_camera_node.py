@@ -45,6 +45,7 @@ def main():
             fake_camera_node.reset_pub.publish(Empty())
         fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
+        fake_camera_node.frame_count += 1
         rate.sleep()
     
 

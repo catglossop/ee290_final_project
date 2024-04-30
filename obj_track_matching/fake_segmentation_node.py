@@ -5,7 +5,8 @@ import imageio as iio
 import matplotlib.pyplot as plt
 import copy
 import time
-from PIL import Image 
+from sensor_msgs.msg import Image 
+from std_msgs.msg import Empty
 import rospy
 from cv_bridge import CvBridge # INSTALL ON PI
 
@@ -39,14 +40,17 @@ class FakeSegmentationNode:
                 combined_frame[seg_frames[key][idx[0]] == 255] = key
                 viz_combined_frame[seg_frames[key][idx[0]] == 255] = key*(255//len(seg_frames.keys()))
             combined_frames.append(combined_frame)
-            viz_combined_frames.append(Image.fromarray(viz_combined_frame))
+            viz_combined_frames.append(viz_combined_frame)
        
         self.seg_frames = combined_frames[::15]
+        self.viz_combined_frames = viz_combined_frames[::15]
         self.frame_count = 0
 
         self.reset_sub = rospy.Subscriber('/camera/reset', Empty, self.reset_callback)
         self.seg_pub = rospy.Publisher('/segmentation/image_raw', Image, queue_size=10)
+        self.viz_pub = rospy.Publisher('/seg_viz/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
+        self.viz_msg = Image()
         self.bridge = CvBridge()
 
     def reset_callback(self, msg):
@@ -59,8 +63,12 @@ def main():
     rate = rospy.Rate(4) # 4 Hz (for ever 15 frames published, 1 is published to the topic)
 
     while not rospy.is_shutdown():
-        fake_seg_node.seg_msg = fake_seg_node.bridge.cv2_to_imgmsg(fake_seg_node.seg_frames[fake_seg_node.frame_count%len(fake_seg_node.seg_frames)], "mono8")
-        fake_camera_node.seg_pub.publish(fake_seg_node.seg_msg)
+        print("Sending seg image")
+        fake_seg_node.seg_msg = fake_seg_node.bridge.cv2_to_imgmsg(fake_seg_node.seg_frames[fake_seg_node.frame_count%len(fake_seg_node.seg_frames)], "passthrough")
+        fake_seg_node.viz_msg = fake_seg_node.bridge.cv2_to_imgmsg(fake_seg_node.viz_combined_frames[fake_seg_node.frame_count%len(fake_seg_node.viz_combined_frames)], "passthrough")
+        fake_seg_node.seg_pub.publish(fake_seg_node.seg_msg)
+        fake_seg_node.viz_pub.publish(fake_seg_node.viz_msg)
+        fake_seg_node.frame_count += 1
         rate.sleep()
 
 if __name__ == '__main__':
