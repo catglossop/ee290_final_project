@@ -41,6 +41,7 @@ class MultiObjectTrackingNode:
         self.curr_frame = None
         self.prev_frame = None
         self.curr_seg = None
+        self.initialized = False
 
     def seg_callback(self, msg):
         self.prev_seg = self.curr_seg
@@ -78,7 +79,6 @@ class MultiObjectTrackingNode:
         self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         self.viz_img = self.curr_frame.copy()
         self.start = time.time()
-        print(self.seg_updated)
 
         
         if self.seg_updated:
@@ -104,7 +104,11 @@ class MultiObjectTrackingNode:
                 cv.fillPoly(mask, [np.flip(self.seg_pts[nseg], axis=2)], 255)
                 curr_kps, curr_descs = self.orb.detectAndCompute(self.curr_frame, mask)
                 self.curr_kps_descs[nseg] = (curr_kps, curr_descs)
-        elif not self.seg_updated and self.curr_seg is not None and self.curr_frame is not None: 
+            
+            if not self.initialized:
+                self.initialized = True
+                
+        elif not self.seg_updated and self.curr_seg is not None and self.curr_frame is not None and self.initialized: 
             self.prev_frame = self.curr_frame
             self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
             self.viz_img = self.curr_frame.copy()
