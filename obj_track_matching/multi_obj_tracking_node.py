@@ -93,7 +93,6 @@ class MultiObjectTrackingNode:
             self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
             self.loop_time_per_fps.append(np.mean(self.loop_time))
         
-        if self.eval_count == (7*5):
             fig, ax = plt.subplots(1,2, figsize=(20,10))
             print(len(self.periods))
             print(len(self.ious_per_fps))
