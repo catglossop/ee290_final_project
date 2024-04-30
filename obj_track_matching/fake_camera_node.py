@@ -18,7 +18,7 @@ class FakeCameraNode:
         # GET TEST DATA
         data_path = "/home/proj206a/data/SegTrackv2"
         input_path = os.path.join(data_path, "JPEGImages")
-        test = "drift"
+        test = "frog"
         input_test_path = os.path.join(input_path, test)
         input_frames = []
 
@@ -94,7 +94,6 @@ def main():
                 fake_camera_node.seg_period = fake_camera_node.periods.pop(0)
                 fake_camera_node.seg_frames =fake_camera_node.gt_frames[::fake_camera_node.seg_period]
                 fake_camera_node.viz_combined_frames = fake_camera_node.org_viz_combined_frames[::fake_camera_node.seg_period]
-                print("New Segmentation Period: ", fake_camera_node.seg_period)
 
         fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)

@@ -19,7 +19,7 @@ class MultiObjectTrackingNode:
 
         self.VISUALIZE = True
         self.DEBUG = False
-        self.test = "drift"
+        self.test = "frog"
         self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
         self.gt_sub = rospy.Subscriber("/ground_truth/image_raw", Image, self.gt_callback)
         self.input_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.input_callback)
@@ -85,13 +85,8 @@ class MultiObjectTrackingNode:
             ax[1].set_title("Loop Time vs Frame")
             plt.savefig(f'output/{self.test}_perf_eval_{self.eval_count}.png')
         self.eval_count += 1
-        print(self.eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
             self.IOU_gt = [iou for iou in self.IOU_gt if not np.isnan(iou)]
-            print(self.IOU_gt)
-            print(self.ious_per_fps)
-            print(self.ious_gt_per_fps)
-            print(self.loop_time_per_fps)
             self.ious_per_fps.append(np.mean(self.IOU_est))
             self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
             self.loop_time_per_fps.append(np.mean(self.loop_time))
