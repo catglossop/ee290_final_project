@@ -211,7 +211,7 @@ class MultiObjectTrackingNode:
                 iou_gt = np.sum(np.logical_and(self.gt_mask, self.curr_mask)) / np.sum(np.logical_or(self.gt_mask, self.curr_mask))
                 ious_gt.append(iou_gt)
 
-                self.curr_mask_out = cv.fillPoly(self.curr_mask_out, [np.flip(n_seg_pts, axis=2)], nseg*(255//self.num_segs))
+                self.curr_mask_out = cv.fillPoly(self.curr_mask_out, [np.flip(n_seg_pts, axis=2)], int(nseg*(255//self.num_segs)))
             
             self.end = time.time()
             self.loop_time.append((self.end-self.start)*1000)
