@@ -41,7 +41,6 @@ class MultiObjectTrackingNode:
         self.curr_frame = None
         self.prev_frame = None
         self.curr_seg = None
-        self.curr_mask = Image()
 
     def seg_callback(self, msg):
         self.prev_seg = self.curr_seg
@@ -186,15 +185,17 @@ class MultiObjectTrackingNode:
             self.IOU_est.append(np.array(ious).mean())
             self.IOU_gt.append(np.array(ious_gt).mean())
 
+
+            self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask, encoding="passthrough")
+            self.mask_pub.publish(self.mask_img)
+
+            self.annotate_img = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="passthrough")
+            self.annotate_pub.publish(self.annotate_img)
+
         else: 
             print("Waiting for first segmentation frame...")
             return
 
-        self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask, encoding="passthrough")
-        self.mask_pub.publish(self.mask_img)
-
-        self.annotate_img = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="passthrough")
-        self.annotate_pub.publish(self.annotate_img)
 
 def main():
 
