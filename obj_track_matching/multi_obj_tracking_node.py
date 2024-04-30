@@ -86,6 +86,7 @@ class MultiObjectTrackingNode:
         self.eval_count += 1
         print(self.eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
+            self.IOU_gt = [iou for iou in self.IOU_gt if not np.isnan(iou)]
             print(self.IOU_gt)
             print(self.ious_per_fps)
             print(self.ious_gt_per_fps)
