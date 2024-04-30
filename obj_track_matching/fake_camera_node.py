@@ -18,7 +18,7 @@ class FakeCameraNode:
         # GET TEST DATA
         data_path = "/home/proj206a/data/SegTrackv2"
         input_path = os.path.join(data_path, "JPEGImages")
-        test = "bird_of_paradise"
+        test = "drift"
         input_test_path = os.path.join(input_path, test)
         input_frames = []
 
