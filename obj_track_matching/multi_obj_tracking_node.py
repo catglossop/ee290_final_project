@@ -39,6 +39,7 @@ class MultiObjectTrackingNode:
         self.IOU_est = []
         self.IOU_gt = []
         self.loop_time = []
+        self.loop_clock = []
         self.eval_count = 0
 
         self.curr_frame = None
@@ -50,6 +51,7 @@ class MultiObjectTrackingNode:
         self.ious_per_fps = []
         self.ious_gt_per_fps = []
         self.loop_time_per_fps = []
+        self.loop_clock_per_fps = []
         self.periods = [10, 20, 30, 40, 50, 60, 70]
 
         for f in glob.glob("output/perf_eval_*.jpg"):
@@ -76,7 +78,7 @@ class MultiObjectTrackingNode:
             ax[0].plot(self.IOU_est)
             ax[0].plot(self.IOU_gt)
             ax[1].plot(self.loop_time)
-            ax[0].legend(["Estimated IOU", "GT IOU", "loop time"])
+            ax[0].legend(["Estimated IOU", "GT IOU"])
             ax[0].set_xlabel("Frame")
             ax[0].set_ylabel("IOU")
             ax[1].set_xlabel("Frame")
@@ -90,14 +92,15 @@ class MultiObjectTrackingNode:
             self.ious_per_fps.append(np.mean(self.IOU_est))
             self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
             self.loop_time_per_fps.append(np.mean(self.loop_time))
+            self.loop_clock_per_fps.append(np.mean(self.loop_clock))
             self.IOU_est = []
             self.IOU_gt = []
             self.loop_time = []
+            self.loop_clock = []
         
         if self.eval_count == 35:
-            data_arr = np.array([self.periods, self.ious_per_fps, self.ious_gt_per_fps, self.loop_time_per_fps])
+            data_arr = np.array([self.periods, self.ious_per_fps, self.ious_gt_per_fps, self.loop_time_per_fps, self.loop_clock_per_fps])
             np.save(f"output/{self.test}_perf_eval.npy", data_arr)
-            fig, ax = plt.subplots(1,2, figsize=(20,10))
             print("DONE EVAL")
 
     def input_callback(self, msg):
@@ -105,6 +108,7 @@ class MultiObjectTrackingNode:
         self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         self.viz_img = self.curr_frame.copy()
         self.start = time.time()
+        self.start_tick = cv.getTickCount()
 
         
         if self.seg_updated:
@@ -228,7 +232,9 @@ class MultiObjectTrackingNode:
                 self.curr_mask_out = cv.fillPoly(self.curr_mask_out, [np.flip(n_seg_pts, axis=2)], int(nseg*(255//self.num_segs)))
             
             self.end = time.time()
+            self.end_tick = cv.getTickCount()
             self.loop_time.append((self.end-self.start)*1000)
+            self.loop_clock.append((self.end_tick-self.start_tick)/cv.getTickFrequency()*1000)
             self.IOU_est.append(np.array(ious).mean())
             self.IOU_gt.append(np.array(ious_gt).mean())
 
