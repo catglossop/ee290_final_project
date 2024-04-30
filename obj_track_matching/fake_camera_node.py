@@ -20,6 +20,7 @@ class FakeCameraNode:
         input_path = os.path.join(data_path, "JPEGImages")
         test = "frog"
         input_test_path = os.path.join(input_path, test)
+        input_frames = []
 
         for img in sorted(os.listdir(os.path.join(input_test_path))):
             frame = cv.imread(os.path.join(input_test_path, img))
