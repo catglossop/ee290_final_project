@@ -116,7 +116,7 @@ class MultiObjectTrackingNode:
             ious_gt, ious = [], []
             for nseg in range(1, self.num_segs+1):
                 (prev_kps, prev_descs) = self.prev_kps_descs[nseg]
-                matches = matcher.match(self.prev_kps_descs[nseg][1], curr_descs)
+                matches = self.matcher.match(self.prev_kps_descs[nseg][1], curr_descs)
                 viz_matches = sorted(matches, key=lambda x: x.distance)[:10]
                 matches = sorted(matches, key=lambda x: x.distance)
 
