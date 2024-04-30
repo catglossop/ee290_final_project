@@ -14,7 +14,7 @@ test = "bird_of_paradise"
 test_idx = None
 input_test_path = os.path.join(input_path, test)
 gt_test_path = os.path.join(gt_path, test)
-VISUALIZE = True
+VISUALIZE = False
 SEG_PERIOD = 15
 
 os.makedirs(f"output/sampled_output_{test}", exist_ok=True)
