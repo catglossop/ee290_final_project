@@ -16,7 +16,7 @@ class FakeCameraNode:
     def __init__(self):
 
         # GET TEST DATA
-        data_path = "/Users/catherineglossop/ee290_final_project/data/SegTrackv2"
+        data_path = "/home/proj206a/data/SegTrackv2"
         input_path = os.path.join(data_path, "JPEGImages")
         test = "frog"
         input_test_path = os.path.join(input_path, test)
@@ -64,9 +64,11 @@ class FakeCameraNode:
 
         self.seg_frames = combined_frames[::15]
         self.frame_count = 0
+        self.seg_count = 0
 
         self.reset_sub = rospy.Subscriber('/camera/reset', Empty, self.reset_callback)
         self.seg_msg = Image()
+        self.seg_period = 15
 
 def main():
 
@@ -79,11 +81,16 @@ def main():
         if fake_camera_node.frame_count % len(fake_camera_node.input_frames) == 0:
             fake_camera_node.reset_pub.publish(Empty())
             fake_camera_node.frame_count = 0
+            fake_camera_node.seg_count = 0
         fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
-
-        fake_camera_node.seg_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.seg_frames[fake_camera_node.frame_count%len(fake_camera_node.seg_frames)], "passthrough")
-        fake_camera_node.seg_pub.publish(fake_camera_node.seg_msg)
+        if fake_camera_node.frame_count % self.seg_period == 0:
+            fake_camera_node.seg_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.seg_frames[fake_camera_node.seg_count], "passthrough")
+            fake_camera_node.viz_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.viz_combined_frames[fake_camera_node.seg_count], "passthrough")
+            fake_camera_node.seg_pub.publish(fake_camera_node.seg_msg)
+            fake_camera_node.viz_pub.publish(fake_camera_node.viz_msg)
+            fake_camera_node.seg_count += 1
+        fake_camera_node.frame_count += 1
         rate.sleep()
     
 
