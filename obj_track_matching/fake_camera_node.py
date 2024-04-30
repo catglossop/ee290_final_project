@@ -26,9 +26,7 @@ class FakeCameraNode:
             frame = cv.imread(os.path.join(input_test_path, img))
             input_frames.append(frame)
 
-        data_path = "/Users/catherineglossop/ee290_final_project/data/SegTrackv2"
         gt_path = os.path.join(data_path, "GroundTruth")
-        test = "frog"
         gt_test_path = os.path.join(gt_path, test)
 
         seg_frames = {1: []}
