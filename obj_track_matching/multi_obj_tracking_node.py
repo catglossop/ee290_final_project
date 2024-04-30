@@ -17,7 +17,7 @@ class MultiObjectTrackingNode:
 
     def __init__(self):
 
-        self.VISUALIZE = False
+        self.VISUALIZE = True
         self.DEBUG = False
         self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
         self.gt_sub = rospy.Subscriber("/ground_truth/image_raw", Image, self.gt_callback)
@@ -46,6 +46,11 @@ class MultiObjectTrackingNode:
         self.gt_seg = None
         self.initialized = False
 
+        self.ious_per_fps = []
+        self.ious_gt_per_fps = []
+        self.loop_time_per_fps = []
+        self.periods = [10, 20, 30, 40, 50, 60, 70]
+
         for f in glob.glob("output/perf_eval_*.jpg"):
             os.remove(f)
 
@@ -66,9 +71,7 @@ class MultiObjectTrackingNode:
         # print("GT IOU: ", np.mean(self.IOU_gt))
         # print("Loop time: ", np.mean(self.loop_time))
         if self.VISUALIZE:
-            # print("Saving plot to output/perf_eval_{}.png".format(self.eval_count))
-
-            fig, ax = plt.subplots(1,2)
+            fig, ax = plt.subplots(1,2, figsize=(20,10))
             ax[0].plot(self.IOU_est)
             ax[0].plot(self.IOU_gt)
             ax[1].plot(self.loop_time)
@@ -80,12 +83,31 @@ class MultiObjectTrackingNode:
             ax[0].set_title("IOU vs Frame")
             ax[1].set_title("Loop Time vs Frame")
             plt.savefig(f'output/perf_eval_{self.eval_count}.png')
-            self.eval_count += 1
-
-        self.IOU_est = []
-        self.IOU_gt = []
-        self.loop_time = []
-
+        self.eval_count += 1
+        if self.eval_count%5 == 0 and self.eval_count > 0:
+            self.eval_count = 0
+            self.IOU_est = []
+            self.IOU_gt = []
+            self.loop_time = []
+            self.ious_per_fps.append(np.mean(self.IOU_est))
+            self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
+            self.loop_time_per_fps.append(np.mean(self.loop_time))
+        
+        if self.eval_count == (7*5):
+            fig, ax = plt.subplots(1,2, figsize=(20,10))
+            ax[0].plot(self.periods, self.ious_per_fps)
+            ax[0].plot(self.periods, self.ious_gt_per_fps)
+            ax[1].plot(self.periods, self.loop_time_per_fps)
+            ax[0].legend(["Estimated IOU", "GT IOU"])
+            ax[0].set_xlabel("Segmentation Period")
+            ax[1].set_xlabel("Segmentation Period")
+            ax[0].set_ylabel("IOU")
+            ax[1].set_ylabel("Time (ms)")
+            ax[0].set_title("IOU vs Segmentation Period")
+            ax[1].set_title("Loop Time vs Segmentation Period")
+            plt.savefig(f'output/perf_eval_over_periods.png')
+            print("DONE EVAL")
+            
     def input_callback(self, msg):
         self.prev_frame = self.curr_frame
         self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)

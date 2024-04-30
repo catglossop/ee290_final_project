@@ -60,9 +60,11 @@ class FakeCameraNode:
         self.image_msg = Image()
         self.bridge = CvBridge()
 
-        self.seg_period = 30
+        self.periods = [10, 20, 30, 40, 50, 60, 70]
+        self.seg_period = self.periods.pop(0)
         self.gt_frames = combined_frames
         self.seg_frames = combined_frames[::self.seg_period]
+        self.org_viz_combined_frames = viz_combined_frames
         self.viz_combined_frames = viz_combined_frames[::self.seg_period]
         self.frame_count = 0
         self.seg_count = 0
@@ -71,7 +73,8 @@ class FakeCameraNode:
         self.viz_pub = rospy.Publisher('/seg_viz/image_raw', Image, queue_size=10)
         self.gt_pub = rospy.Publisher('/ground_truth/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
-        self.viz_msg = Image()
+        self.viz_msg = Image() 
+        self.iter_count = 0
 
 
 def main():
@@ -86,7 +89,13 @@ def main():
             fake_camera_node.reset_pub.publish(Empty())
             fake_camera_node.frame_count = 0
             fake_camera_node.seg_count = 0
-        
+            fake_camera_node.iter_count += 1
+            if fake_camera_node.iter_count == 5:
+                self.seg_period = self.periods.pop(0)
+                self.seg_frames =self.gt_frames[::self.seg_period]
+                self.viz_combined_frames = self.org_viz_combined_frames[::self.seg_period]
+                print("New Segmentation Period: ", self.seg_period)
+
         fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
         fake_camera_node.gt_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.gt_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
