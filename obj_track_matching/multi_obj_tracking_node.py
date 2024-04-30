@@ -192,3 +192,14 @@ class MultiObjectTrackingNode:
 
         self.annotate_img = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="bgr8")
         self.annotate_pub.publish(self.annotate_img)
+
+def main():
+
+    rospy.init_node('multi_obj_tracking_node', anonymous=True)
+    multi_obj_tracking_node = MultiObjectTrackingNode()
+
+    rospy.spin()
+
+
+if __name__ == '__main__':
+    main()
