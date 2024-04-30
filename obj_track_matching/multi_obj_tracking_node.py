@@ -17,7 +17,8 @@ class MultiObjectTrackingNode:
 
     def __init__(self):
 
-        self.VISUALIZE = True
+        self.VISUALIZE = False
+        self.DEBUG = True
         self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
         self.input_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.input_callback)
         self.reset_sub = rospy.Subscriber("/camera/reset", Empty, self.reset_callback)
@@ -47,7 +48,6 @@ class MultiObjectTrackingNode:
         self.prev_seg = self.curr_seg
         self.curr_seg = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         self.num_segs = np.max(np.unique(self.curr_seg))
-        print("Number of segments: ", self.num_segs)
         self.seg_updated = True
         self.seg_color = np.random.randint(0, 255, (self.num_segs*2, 3))
     
@@ -94,7 +94,18 @@ class MultiObjectTrackingNode:
 
                 # Turn the points into an array
                 self.seg_pts[nseg] = np.array([Px_min, Py_max, Px_max, Py_min])
+                print(self.seg_pts[nseg])
                 self.seg_pts[nseg] = self.seg_pts[nseg].reshape(-1, 1, 2)
+            
+            if DEBUG:
+                for nseg in range(1, self.num_segs+1):
+                    n_seg_pts = self.seg_pts[nseg]
+                    self.viz_img = cv.polylines(self.viz_img, [np.flip(n_seg_pts, axis=2)], True, (255,255,255), 1)
+                    for i in range(4):
+                        self.viz_img = cv.circle(viz_img, (n_seg_pts[i,0,1], n_seg_pts[i,0,0]), 5, color=self.seg_color[nseg-1].tolist(), thickness=-1)
+                
+                self.viz_msg = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="passthrough")
+                self.annotate_pub.publish(self.viz_msg)
                 
             self.init_seg_pts = self.seg_pts
             self.seg_updated = False
