@@ -84,6 +84,7 @@ class MultiObjectTrackingNode:
             ax[1].set_title("Loop Time vs Frame")
             plt.savefig(f'output/perf_eval_{self.eval_count}.png')
         self.eval_count += 1
+        print(eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
             self.eval_count = 0
             self.IOU_est = []
@@ -107,7 +108,7 @@ class MultiObjectTrackingNode:
             ax[1].set_title("Loop Time vs Segmentation Period")
             plt.savefig(f'output/perf_eval_over_periods.png')
             print("DONE EVAL")
-            
+
     def input_callback(self, msg):
         self.prev_frame = self.curr_frame
         self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
