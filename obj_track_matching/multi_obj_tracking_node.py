@@ -100,21 +100,6 @@ class MultiObjectTrackingNode:
             data_arr = np.array([self.periods, self.ious_per_fps, self.ious_gt_per_fps, self.loop_time_per_fps])
             np.save("output/perf_eval.npy", data_arr)
             fig, ax = plt.subplots(1,2, figsize=(20,10))
-            print(len(self.periods))
-            print(len(self.ious_per_fps))
-            print(len(self.ious_gt_per_fps))
-            print(len(self.loop_time_per_fps))
-            # ax[0].plot(self.periods[:len(self.ious_per_fps)], self.ious_per_fps)
-            # ax[0].plot(self.periods[:len(self.ious_per_fps)], self.ious_gt_per_fps)
-            # ax[1].plot(self.periods[:len(self.ious_per_fps)], self.loop_time_per_fps)
-            # ax[0].legend(["Estimated IOU", "GT IOU"])
-            # ax[0].set_xlabel("Segmentation Period")
-            # ax[1].set_xlabel("Segmentation Period")
-            # ax[0].set_ylabel("IOU")
-            # ax[1].set_ylabel("Time (ms)")
-            # ax[0].set_title("IOU vs Segmentation Period")
-            # ax[1].set_title("Loop Time vs Segmentation Period")
-            # plt.savefig(f'output/perf_eval_over_periods_{self.eval_count}.png')
             print("DONE EVAL")
 
     def input_callback(self, msg):
@@ -248,6 +233,7 @@ class MultiObjectTrackingNode:
             self.loop_time.append((self.end-self.start)*1000)
             self.IOU_est.append(np.array(ious).mean())
             self.IOU_gt.append(np.array(ious_gt).mean())
+            print(ious_gt)
 
 
             self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask_out, encoding="passthrough")
