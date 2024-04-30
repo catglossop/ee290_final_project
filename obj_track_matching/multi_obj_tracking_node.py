@@ -98,7 +98,7 @@ class MultiObjectTrackingNode:
             for nseg in range(1, self.num_segs+1):
                 mask = np.zeros_like(self.curr_seg)
                 cv.fillPoly(mask, [np.flip(self.seg_pts[nseg], axis=2)], 255)
-                curr_kps, curr_descs = orb.detectAndCompute(self.curr_frame, mask)
+                curr_kps, curr_descs = self.orb.detectAndCompute(self.curr_frame, mask)
                 self.curr_kps_descs[nseg] = (curr_kps, curr_descs)
         elif not self.seg_updated and self.curr_seg is not None and self.curr_frame is not None: 
             self.prev_frame = self.curr_frame
