@@ -86,7 +86,6 @@ class MultiObjectTrackingNode:
         self.eval_count += 1
         print(self.eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
-            self.eval_count = 0
             self.IOU_est = []
             self.IOU_gt = []
             self.loop_time = []
