@@ -83,7 +83,7 @@ class MultiObjectTrackingNode:
             ax[1].set_ylabel("Time (ms)")
             ax[0].set_title("IOU vs Frame")
             ax[1].set_title("Loop Time vs Frame")
-            plt.savefig(f'output/{self.test}perf_eval_{self.eval_count}.png')
+            plt.savefig(f'output/{self.test}_perf_eval_{self.eval_count}.png')
         self.eval_count += 1
         print(self.eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
@@ -101,7 +101,7 @@ class MultiObjectTrackingNode:
         
         if self.eval_count == 35:
             data_arr = np.array([self.periods, self.ious_per_fps, self.ious_gt_per_fps, self.loop_time_per_fps])
-            np.save("output/perf_eval.npy", data_arr)
+            np.save(f"output/{self.test}_perf_eval.npy", data_arr)
             fig, ax = plt.subplots(1,2, figsize=(20,10))
             print("DONE EVAL")
 
