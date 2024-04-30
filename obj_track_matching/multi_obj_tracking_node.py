@@ -109,7 +109,7 @@ class MultiObjectTrackingNode:
             ax[1].set_ylabel("Time (ms)")
             ax[0].set_title("IOU vs Segmentation Period")
             ax[1].set_title("Loop Time vs Segmentation Period")
-            plt.savefig(f'output/perf_eval_over_periods.png')
+            plt.savefig(f'output/perf_eval_over_periods_{self.eval_count}.png')
             print("DONE EVAL")
 
     def input_callback(self, msg):
