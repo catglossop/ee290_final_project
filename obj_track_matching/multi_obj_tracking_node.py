@@ -41,6 +41,7 @@ class MultiObjectTrackingNode:
         self.curr_frame = None
         self.prev_frame = None
         self.curr_seg = None
+        self.curr_mask = Image()
 
     def seg_callback(self, msg):
         self.prev_seg = self.curr_seg
