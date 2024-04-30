@@ -15,7 +15,7 @@ test_idx = None
 input_test_path = os.path.join(input_path, test)
 gt_test_path = os.path.join(gt_path, test)
 VISUALIZE = True
-SEG_PERIOD = 60
+SEG_PERIOD = 20
 
 os.makedirs(f"output/sampled_output_{test}", exist_ok=True)
 
