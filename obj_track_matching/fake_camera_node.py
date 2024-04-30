@@ -81,7 +81,7 @@ def main():
 
 
     while not rospy.is_shutdown():
-        if fake_camera_node.frame_count % len(fake_camera_node.input_frames) == 0:
+        if fake_camera_node.frame_count % len(fake_camera_node.input_frames)-1 == 0:
             fake_camera_node.reset_pub.publish(Empty())
             fake_camera_node.frame_count = 0
             fake_camera_node.seg_count = 0
