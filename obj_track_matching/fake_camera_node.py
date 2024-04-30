@@ -66,7 +66,6 @@ class FakeCameraNode:
         self.frame_count = 0
         self.seg_count = 0
 
-        self.reset_sub = rospy.Subscriber('/camera/reset', Empty, self.reset_callback)
         self.seg_pub = rospy.Publisher('/segmentation/image_raw', Image, queue_size=10)
         self.viz_pub = rospy.Publisher('/seg_viz/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
