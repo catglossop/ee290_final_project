@@ -131,6 +131,7 @@ class MultiObjectTrackingNode:
             self.prev_frame = self.curr_frame
             self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
             self.viz_img = self.curr_frame.copy()
+            self.curr_mask_out = np.zeros_like(self.curr_seg)
 
             self.prev_kps_descs = self.curr_kps_descs
 
@@ -208,6 +209,8 @@ class MultiObjectTrackingNode:
                 self.gt_mask = np.where(self.gt_seg==nseg, 255, 0)
                 iou_gt = np.sum(np.logical_and(self.gt_mask, self.curr_mask)) / np.sum(np.logical_or(self.gt_mask, self.curr_mask))
                 ious_gt.append(iou_gt)
+
+                self.curr_mask_out = cv.fillPoly(self.curr_mask_out, [np.flip(n_seg_pts, axis=2)], nseg*(255//self.num_segs))
             
             self.end = time.time()
             self.loop_time.append((self.end-self.start)*1000)
@@ -215,7 +218,7 @@ class MultiObjectTrackingNode:
             self.IOU_gt.append(np.array(ious_gt).mean())
 
 
-            self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask, encoding="passthrough")
+            self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask_out, encoding="passthrough")
             self.mask_pub.publish(self.mask_img)
 
             self.annotate_img = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="passthrough")
