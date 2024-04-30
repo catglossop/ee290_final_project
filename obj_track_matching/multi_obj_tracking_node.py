@@ -206,7 +206,7 @@ class MultiObjectTrackingNode:
 
                 # Get IOU with GT segmentation
                 self.gt_mask = np.where(self.gt_seg==nseg, 255, 0)
-                iou_gt = np.sum(np.logical_and(self.gt_mask, self.curr_mask)) / np.sum(np.logical_or(gt_mask, self.curr_mask))
+                iou_gt = np.sum(np.logical_and(self.gt_mask, self.curr_mask)) / np.sum(np.logical_or(self.gt_mask, self.curr_mask))
                 ious_gt.append(iou_gt)
             
             self.end = time.time()
