@@ -38,6 +38,10 @@ class MultiObjectTrackingNode:
         self.loop_time = []
         self.eval_count = 0
 
+        self.curr_frame = None
+        self.prev_frame = None
+        self.curr_seg = None
+
     def seg_callback(self, msg):
         self.prev_seg = self.curr_seg
         self.curr_seg = self.cv_bridge.imgmsg_to_cv2(msg)
@@ -102,7 +106,7 @@ class MultiObjectTrackingNode:
                 curr_kps, curr_descs = orb.detectAndCompute(curr_frame, mask)
                 self.curr_kps_descs[nseg] = (curr_kps, curr_descs)
 
-        elif not self.seg_updated and self.curr_seg != None: 
+        elif not self.seg_updated and self.curr_seg != None and self.curr_frame != None: 
 
             self.prev_kps_descs = self.curr_kps_descs
 
@@ -188,10 +192,10 @@ class MultiObjectTrackingNode:
             print("Waiting for first segmentation frame...")
             return
 
-        self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask, encoding="mono8")
+        self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask, encoding="passthrough")
         self.mask_pub.publish(self.mask_img)
 
-        self.annotate_img = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="bgr8")
+        self.annotate_img = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="passthrough")
         self.annotate_pub.publish(self.annotate_img)
 
 def main():
