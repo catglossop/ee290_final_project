@@ -20,6 +20,7 @@ class MultiObjectTrackingNode:
         self.VISUALIZE = False
         self.DEBUG = True
         self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
+        self.gt_sub = rospy.Subscriber("/ground_truth/image_raw", Image, self.gt_callback)
         self.input_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.input_callback)
         self.reset_sub = rospy.Subscriber("/camera/reset", Empty, self.reset_callback)
         self.viz_img = Image()
@@ -42,6 +43,7 @@ class MultiObjectTrackingNode:
         self.curr_frame = None
         self.prev_frame = None
         self.curr_seg = None
+        self.gt_sub = None
         self.initialized = False
 
     def seg_callback(self, msg):
@@ -50,6 +52,10 @@ class MultiObjectTrackingNode:
         self.num_segs = np.max(np.unique(self.curr_seg))
         self.seg_updated = True
         self.seg_color = np.random.randint(0, 255, (self.num_segs*2, 3))
+    
+    def gt_callback(self, msg):
+        self.gt_seg = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+        self.gt_num_segs = np.max(np.unique(self.gt_seg))
     
     def reset_callback(self, msg):
 
@@ -196,7 +202,7 @@ class MultiObjectTrackingNode:
                     continue
                 n_seg_pts = n_prev_seg_pts + iou*delta
                 n_seg_pts = n_seg_pts.astype(np.int64)
-                seg_pts[nseg] = n_seg_pts
+                self.seg_pts[nseg] = n_seg_pts
 
                 # Get IOU with GT segmentation
                 gt_mask = np.where(seg_frames[frame_idx]==nseg, 255, 0)
