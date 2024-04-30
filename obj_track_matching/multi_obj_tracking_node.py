@@ -100,8 +100,7 @@ class MultiObjectTrackingNode:
                 cv.fillPoly(mask, [np.flip(seg_pts[nseg], axis=2)], 255)
                 curr_kps, curr_descs = orb.detectAndCompute(curr_frame, mask)
                 self.curr_kps_descs[nseg] = (curr_kps, curr_descs)
-
-        elif not self.seg_updated and self.curr_seg != None and self.curr_frame != None: 
+        elif not self.seg_updated and self.curr_seg is not None and self.curr_frame is not None: 
             self.prev_frame = self.curr_frame
             self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
             self.viz_img = self.curr_frame.copy()
