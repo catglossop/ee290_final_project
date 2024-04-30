@@ -125,8 +125,6 @@ class MultiObjectTrackingNode:
                 viz_matches = sorted(matches, key=lambda x: x.distance)[:10]
                 matches = sorted(matches, key=lambda x: x.distance)
 
-                print(len(matches))
-
                 n_init_seg_pts = self.init_seg_pts[nseg]
                 n_seg_pts = self.seg_pts[nseg]
 
@@ -136,6 +134,10 @@ class MultiObjectTrackingNode:
                     for i in range(4):
                         self.viz_img = cv.circle(self.viz_img, (n_init_seg_pts[i,0,1], n_init_seg_pts[i,0,  0]), 5, color=self.seg_color[nseg-1].tolist(), thickness=-1)
                         self.viz_img = cv.circle(self.viz_img, (n_seg_pts[i,0,1], n_seg_pts[i,0,0]), 5, color=self.seg_color[(nseg-1)+self.num_segs].tolist(), thickness=-1)
+                
+                    self.viz_img = cv.putText(self.viz_img, f"Segmentation {nseg}", (n_init_seg_pts[0,0,1], n_init_seg_pts[0,0,0]), cv.FONT_HERSHEY_SIMPLEX, 1, (255,255,255), 2, cv.LINE_AA)
+                    self.viz_msg = self.cv_bridge.cv2_to_imgmsg(self.viz_img, encoding="passthrough")
+                    self.annotate_pub.publish(self.viz_msg)
 
                 # Find the set of points in the segmentation zone with good correspondences
                 u_pts = []
