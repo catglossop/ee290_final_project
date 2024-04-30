@@ -42,7 +42,7 @@ class FakeSegmentationNode:
             combined_frames.append(combined_frame)
             viz_combined_frames.append(viz_combined_frame)
        
-        self.seg_frames = combined_frames[::15]
+        self.seg_frames = combined_frames[::self.se]
         self.viz_combined_frames = viz_combined_frames[::15]
         self.frame_count = 0
 
