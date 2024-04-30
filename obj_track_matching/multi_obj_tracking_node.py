@@ -126,7 +126,7 @@ class MultiObjectTrackingNode:
 
                 if self.VISUALIZE:
                     self.viz_img = cv.drawMatches(self.prev_frame, self.prev_kps_descs[nseg][0], self.curr_frame, curr_kps, viz_matches, None) 
-                    self.viz_img = cv.polylines(self.final_img, [np.flip(n_init_seg_pts, axis=2)], True, (255,255,255), 1)
+                    self.viz_img = cv.polylines(self.viz_img, [np.flip(n_init_seg_pts, axis=2)], True, (255,255,255), 1)
                     for i in range(4):
                         self.viz_img = cv.circle(self.viz_img, (n_init_seg_pts[i,0,1], n_init_seg_pts[i,0,  0]), 5, color=self.seg_color[nseg-1].tolist(), thickness=-1)
                         self.viz_img = cv.circle(self.viz_img, (n_seg_pts[i,0,1], n_seg_pts[i,0,0]), 5, color=self.seg_color[(nseg-1)+self.num_segs].tolist(), thickness=-1)
