@@ -93,7 +93,7 @@ class MultiObjectTrackingNode:
                 Py_min = arg_mask[np.argmin(arg_mask[:,1]), :]
 
                 # Turn the points into an array
-                self.seg_pts[nseg] = np.array([Px_min, Py_max, Px_max, Py_min])
+                self.seg_pts[nseg] = np.array([Px_min[:2], Py_max[:2], Px_max[:2], Py_min[:2]])
                 print(self.seg_pts[nseg])
                 self.seg_pts[nseg] = self.seg_pts[nseg].reshape(-1, 1, 2)
             
