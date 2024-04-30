@@ -4,7 +4,7 @@ import numpy as np
 path = "/home/proj206a/ee290_ws/src/ee290_final_project/obj_track_matching/output/perf_eval.npy"
 
 
-data = np.load(path, allow_pickle=True).item()
+data = np.load(path, allow_pickle=True)
 
 breakpoint()
 
