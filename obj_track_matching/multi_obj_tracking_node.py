@@ -97,7 +97,7 @@ class MultiObjectTrackingNode:
                 print(self.seg_pts[nseg])
                 self.seg_pts[nseg] = self.seg_pts[nseg].reshape(-1, 1, 2)
             
-            if DEBUG:
+            if self.DEBUG:
                 for nseg in range(1, self.num_segs+1):
                     n_seg_pts = self.seg_pts[nseg]
                     self.viz_img = cv.polylines(self.viz_img, [np.flip(n_seg_pts, axis=2)], True, (255,255,255), 1)
