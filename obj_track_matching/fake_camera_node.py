@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import copy
 import time 
 import rospy
-import ros_numpy as rnp
 from sensor_msgs.msg import Image
 from std_msgs.msg import Empty
+from cv_bridge import CvBridge # INSTALL ON PI
 
 
 class FakeCameraNode:
@@ -30,6 +30,7 @@ class FakeCameraNode:
         self.input_pub = rospy.Publisher('/camera/color/image_raw', Image, queue_size=10)
         self.reset_pub = rospy.Publisher('/camera/reset', Empty, queue_size=10)
         self.image_msg = Image()
+        self.bridge = CvBridge()
 
 def main():
 
@@ -39,9 +40,9 @@ def main():
 
 
     while not rospy.is_shutdown():
-        if self.frame_count % len(self.input_frames) == 0:
-            self.reset_pub.publish(Empty())
-        fake_camera_node.image_msg = rnp.msgify(Image, fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], encoding='bgr8')
+        if fake_camera_node.frame_count % len(fake_camera_node.input_frames) == 0:
+            fake_camera_node.reset_pub.publish(Empty())
+        fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
         rate.sleep()
     

@@ -7,7 +7,7 @@ import copy
 import time
 from PIL import Image 
 import rospy
-import ros_numpy as rnp
+from cv_bridge import CvBridge # INSTALL ON PI
 
 class FakeSegmentationNode:
 
@@ -47,6 +47,7 @@ class FakeSegmentationNode:
         self.reset_sub = rospy.Subscriber('/camera/reset', Empty, self.reset_callback)
         self.seg_pub = rospy.Publisher('/segmentation/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
+        self.bridge = CvBridge()
 
     def reset_callback(self, msg):
         self.frame_count = 0
@@ -58,7 +59,7 @@ def main():
     rate = rospy.Rate(4) # 4 Hz (for ever 15 frames published, 1 is published to the topic)
 
     while not rospy.is_shutdown():
-        fake_seg_node.seg_msg = rnp.msgify(Image, fake_seg_node.seg_frames[fake_seg_node.frame_count%len(fake_seg_node.seg_frames)], encoding='mono8')
+        fake_seg_node.seg_msg = fake_seg_node.bridge.cv2_to_imgmsg(fake_seg_node.seg_frames[fake_seg_node.frame_count%len(fake_seg_node.seg_frames)], "mono8")
         fake_camera_node.seg_pub.publish(fake_seg_node.seg_msg)
         rate.sleep()
 
