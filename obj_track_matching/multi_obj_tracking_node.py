@@ -107,8 +107,6 @@ class MultiObjectTrackingNode:
             
             if not self.initialized:
                 self.initialized = True
-            
-            print("curr descs: ", self.curr_kps_descs)
 
         elif not self.seg_updated and self.curr_seg is not None and self.curr_frame is not None and self.initialized: 
             self.prev_frame = self.curr_frame
@@ -126,6 +124,8 @@ class MultiObjectTrackingNode:
                 matches = self.matcher.match(self.prev_kps_descs[nseg][1], curr_descs)
                 viz_matches = sorted(matches, key=lambda x: x.distance)[:10]
                 matches = sorted(matches, key=lambda x: x.distance)
+
+                print(len(matches))
 
                 n_init_seg_pts = self.init_seg_pts[nseg]
                 n_seg_pts = self.seg_pts[nseg]
