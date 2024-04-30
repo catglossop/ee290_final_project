@@ -84,7 +84,7 @@ class MultiObjectTrackingNode:
             ax[1].set_title("Loop Time vs Frame")
             plt.savefig(f'output/perf_eval_{self.eval_count}.png')
         self.eval_count += 1
-        print(eval_count)
+        print(self.eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
             self.eval_count = 0
             self.IOU_est = []
