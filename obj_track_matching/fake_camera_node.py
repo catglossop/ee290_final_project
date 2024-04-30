@@ -16,7 +16,7 @@ class FakeCameraNode:
     def __init__(self):
 
         # GET TEST DATA
-        data_path = "/Users/catherineglossop/ee290_final_project/data/SegTrackv2"
+        data_path = "/home/proj206a/data/SegTrackv2"
         input_path = os.path.join(data_path, "JPEGImages")
         test = "frog"
         input_test_path = os.path.join(input_path, test)

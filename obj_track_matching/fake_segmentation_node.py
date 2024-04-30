@@ -12,7 +12,7 @@ import ros_numpy as rnp
 class FakeSegmentationNode:
 
     def __init__(self):
-        data_path = "/Users/catherineglossop/ee290_final_project/data/SegTrackv2"
+        data_path = "/home/proj206a/data/SegTrackv2"
         gt_path = os.path.join(data_path, "GroundTruth")
         test = "frog"
         gt_test_path = os.path.join(gt_path, test)
