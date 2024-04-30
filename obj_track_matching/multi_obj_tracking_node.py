@@ -96,7 +96,7 @@ class MultiObjectTrackingNode:
             # Get the features in the segmentation zone 
             self.curr_kps_descs = {}
             for nseg in range(1, self.num_segs+1):
-                mask = np.zeros_like(curr_seg)
+                mask = np.zeros_like(self.curr_seg)
                 cv.fillPoly(mask, [np.flip(self.seg_pts[nseg], axis=2)], 255)
                 curr_kps, curr_descs = orb.detectAndCompute(self.curr_frame, mask)
                 self.curr_kps_descs[nseg] = (curr_kps, curr_descs)
