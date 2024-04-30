@@ -43,7 +43,7 @@ class MultiObjectTrackingNode:
         self.curr_frame = None
         self.prev_frame = None
         self.curr_seg = None
-        self.gt_sub = None
+        self.gt_seg = None
         self.initialized = False
 
     def seg_callback(self, msg):
