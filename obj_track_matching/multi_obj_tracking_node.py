@@ -80,8 +80,9 @@ class MultiObjectTrackingNode:
         self.start = time.time()
         print(self.seg_updated)
 
-        self.seg_pts = {}
+        
         if self.seg_updated:
+            self.seg_pts = {}
             for nseg in range(1, self.num_segs+1):
                 arg_mask = np.argwhere(self.curr_seg == nseg)
                 Px_max = arg_mask[np.argmax(arg_mask[:,0]), :]
