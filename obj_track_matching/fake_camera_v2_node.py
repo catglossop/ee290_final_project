@@ -16,42 +16,24 @@ class FakeCameraNode:
     def __init__(self):
 
         # GET TEST DATA
-        data_path = "/home/proj206a/data/SegTrackv2"
-        input_path = os.path.join(data_path, "JPEGImages")
-        test = "drift"
-        input_test_path = os.path.join(input_path, test)
+        data_path = "/home/proj206a"
+        input_path = os.path.join(data_path, "extracted_frames")
+        input_test_path = input_path
         input_frames = []
 
         for img in sorted(os.listdir(os.path.join(input_test_path))):
             frame = cv.imread(os.path.join(input_test_path, img))
             input_frames.append(frame)
 
-        gt_path = os.path.join(data_path, "GroundTruth")
-        gt_test_path = os.path.join(gt_path, test)
+        gt_path = os.path.join(data_path, "segmented_video")
+        gt_test_path = gt_path
 
-        seg_frames = {1: []}
-        for sub in sorted(os.listdir(os.path.join(gt_test_path))):
-            sub_path = os.path.join(gt_test_path, sub)
-            if os.path.isdir(sub_path):
-                seg_frames[int(sub)] = []
-                for img in sorted(os.listdir(sub_path)):
-                    frame = iio.imread(os.path.join(sub_path,img))
-                    seg_frames[int(sub)].append(frame[..., 0])
-            else:
-                frame = iio.imread(sub_path)
-                seg_frames[1].append(frame[..., 0])
-
-        # Combine together frames
         combined_frames = []
         viz_combined_frames = []
-        for idx in enumerate(seg_frames[1]):
-            combined_frame = np.zeros_like(seg_frames[1][idx[0]])
-            viz_combined_frame = np.zeros_like(seg_frames[1][idx[0]])
-            for key in seg_frames.keys():
-                combined_frame[seg_frames[key][idx[0]] == 255] = key
-                viz_combined_frame[seg_frames[key][idx[0]] == 255] = key*(255//len(seg_frames.keys()))
-            combined_frames.append(combined_frame)
-            viz_combined_frames.append(viz_combined_frame)
+        for img in sorted(os.listdir(os.path.join(gt_test_path))):
+            frame = cv.imread(os.path.join(gt_test_path, img))[...,0]
+            combined_frames.append(frame)
+            viz_combined_frames.append((frame*(255//np.max(frame))))
 
         self.input_frames = input_frames
         self.frame_count = 0
