@@ -90,7 +90,6 @@ def main():
             fake_camera_node.frame_count = 0
             fake_camera_node.seg_count = 0
             fake_camera_node.iter_count += 1
-            print(fake_camera_node.iter_count)
             if fake_camera_node.iter_count % 5:
                 fake_camera_node.seg_period = fake_camera_node.periods.pop(0)
                 fake_camera_node.seg_frames =fake_camera_node.gt_frames[::fake_camera_node.seg_period]
