@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np 
 
-path = "/home/proj206a/output/perf_eval.npy"
+path = "/home/proj206a/ee290_ws/src/ee290_final_project/obj_track_matching/output/perf_eval.npy"
 
 
 data = np.load(path, allow_pickle=True).item()
