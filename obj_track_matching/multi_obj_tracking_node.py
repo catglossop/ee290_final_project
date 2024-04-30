@@ -86,15 +86,15 @@ class MultiObjectTrackingNode:
         self.eval_count += 1
         print(self.eval_count)
         if self.eval_count%5 == 0 and self.eval_count > 0:
-            self.IOU_est = []
-            self.IOU_gt = []
-            self.loop_time = []
-            print(self.IOU_est)
-            print(self.IOU_gt)
-            print(self.loop_time)
+            print(self.ious_per_fps)
+            print(self.ious_gt_per_fps)
+            print(self.loop_time_per_fps)
             self.ious_per_fps.append(np.mean(self.IOU_est))
             self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
             self.loop_time_per_fps.append(np.mean(self.loop_time))
+            self.IOU_est = []
+            self.IOU_gt = []
+            self.loop_time = []
         
         if self.eval_count == 35:
             data_arr = np.array([self.periods, self.ious_per_fps, self.ious_gt_per_fps, self.loop_time_per_fps])
