@@ -74,7 +74,9 @@ class MultiObjectTrackingNode:
         self.loop_time = []
 
     def input_callback(self, msg):
-
+        self.prev_frame = self.curr_frame
+        self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
+        self.viz_img = self.curr_frame.copy()
         self.start = time.time()
         print(self.seg_updated)
 
