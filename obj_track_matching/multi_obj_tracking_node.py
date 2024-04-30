@@ -107,11 +107,14 @@ class MultiObjectTrackingNode:
             
             if not self.initialized:
                 self.initialized = True
-                
+
         elif not self.seg_updated and self.curr_seg is not None and self.curr_frame is not None and self.initialized: 
             self.prev_frame = self.curr_frame
             self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
             self.viz_img = self.curr_frame.copy()
+
+            print("Curr descs and kps: ", self.curr_kps_descs)
+            print("Prev descs and kps: ", self.prev_kps_descs)
 
             self.prev_kps_descs = self.curr_kps_descs
 
@@ -158,7 +161,6 @@ class MultiObjectTrackingNode:
                     n_seg_pts = cv.perspectiveTransform(n_seg_pts.astype(np.float32), matrix)
                 
                 except: 
-                    print("Homography failed")
                     return
 
                 # Perform the transformation on the segmentation zone to get the new segmentation zone
