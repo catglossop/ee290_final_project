@@ -51,7 +51,7 @@ class FakeCameraNode:
                 combined_frame[seg_frames[key][idx[0]] == 255] = key
                 viz_combined_frame[seg_frames[key][idx[0]] == 255] = key*(255//len(seg_frames.keys()))
             combined_frames.append(combined_frame)
-            viz_combined_frames.append(Image.fromarray(viz_combined_frame))
+            viz_combined_frames.append(viz_combined_frame)
 
         self.input_frames = input_frames
         self.frame_count = 0
