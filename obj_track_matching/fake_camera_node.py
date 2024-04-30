@@ -62,13 +62,18 @@ class FakeCameraNode:
         self.image_msg = Image()
         self.bridge = CvBridge()
 
-        self.seg_frames = combined_frames[::15]
+        self.seg_period = 15
+        self.seg_frames = combined_frames[::self.seg_period]
+        self.viz_combined_frames = viz_combined_frames[::self.seg_period]
         self.frame_count = 0
         self.seg_count = 0
 
         self.reset_sub = rospy.Subscriber('/camera/reset', Empty, self.reset_callback)
+        self.seg_pub = rospy.Publisher('/segmentation/image_raw', Image, queue_size=10)
+        self.viz_pub = rospy.Publisher('/seg_viz/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
-        self.seg_period = 15
+        self.viz_msg = Image()
+
 
 def main():
 
