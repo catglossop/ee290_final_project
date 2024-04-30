@@ -51,8 +51,8 @@ class MultiObjectTrackingNode:
     
     def reset_callback(self, msg):
 
-        print("IOU: ", np.mean(self.iou_est))
-        print("GT IOU: ", np.mean(self.iou_gt))
+        print("IOU: ", np.mean(self.IOU_est))
+        print("GT IOU: ", np.mean(self.IOU_gt))
         print("Loop time: ", np.mean(self.loop_time))
         print("Saving plot to output/perf_eval_{}.png".format(self.eval_count))
 
@@ -76,6 +76,7 @@ class MultiObjectTrackingNode:
     def input_callback(self, msg):
 
         self.start = time.time()
+        print(self.seg_updated)
 
         self.seg_pts = {}
         if self.seg_updated:
