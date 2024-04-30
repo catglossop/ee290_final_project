@@ -33,8 +33,8 @@ class MultiObjectTrackingNode:
         self.matcher = cv.BFMatcher(cv.NORM_HAMMING, crossCheck=True)
 
         # Tracking
-        self.iou_est = []
-        self.iou_gt = []
+        self.IOU_est = []
+        self.IOU_gt = []
         self.loop_time = []
         self.eval_count = 0
 
