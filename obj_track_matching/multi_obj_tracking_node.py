@@ -95,6 +95,10 @@ class MultiObjectTrackingNode:
         
         if self.eval_count == (7*5):
             fig, ax = plt.subplots(1,2, figsize=(20,10))
+            print(len(self.periods))
+            print(len(self.ious_per_fps))
+            print(len(self.ious_gt_per_fps))
+            print(len(self.loop_time_per_fps))
             ax[0].plot(self.periods, self.ious_per_fps)
             ax[0].plot(self.periods, self.ious_gt_per_fps)
             ax[1].plot(self.periods, self.loop_time_per_fps)
