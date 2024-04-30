@@ -44,7 +44,7 @@ class MultiObjectTrackingNode:
 
     def seg_callback(self, msg):
         self.prev_seg = self.curr_seg
-        self.curr_seg = self.cv_bridge.imgmsg_to_cv2(msg, encoding="passthrough")
+        self.curr_seg = self.cv_bridge.imgmsg_to_cv2(msg)
         self.num_segs = np.max(np.unique(self.curr_seg))
         self.seg_updated = True
         self.seg_color = np.random.randint(0, 255, (self.num_segs*2, 3))
@@ -103,7 +103,7 @@ class MultiObjectTrackingNode:
 
         elif not self.seg_updated and self.curr_seg != None and self.curr_frame != None: 
             self.prev_frame = self.curr_frame
-            self.curr_frame = self.cv_bridge.imgmsg_to_cv2(msg, encoding="passthrough")
+            self.curr_frame = self.cv_bridge.imgmsg_to_cv2(msg)
             self.viz_img = self.curr_frame.copy()
 
             self.prev_kps_descs = self.curr_kps_descs
