@@ -10,12 +10,12 @@ import time
 data_path = "/Users/catherineglossop/ee290_final_project/data/SegTrackv2"
 gt_path = os.path.join(data_path, "GroundTruth")
 input_path = os.path.join(data_path, "JPEGImages")
-test = "bird_of_paradise"
+test = "frog"
 test_idx = None
 input_test_path = os.path.join(input_path, test)
 gt_test_path = os.path.join(gt_path, test)
-VISUALIZE = False
-SEG_PERIOD = 15
+VISUALIZE = True
+SEG_PERIOD = 60
 
 os.makedirs(f"output/sampled_output_{test}", exist_ok=True)
 
