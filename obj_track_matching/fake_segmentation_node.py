@@ -24,7 +24,9 @@ class FakeSegmentationNode:
         self.viz_msg = Image()
         self.bridge = CvBridge()
         torch.cuda.set_device(0)
+        print("Loading model...")
         self.model = YOLO(model_path)
+        print("Model loaded.")
         self.viz = viz
 
         self.curr_frame = None

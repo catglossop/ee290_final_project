@@ -18,6 +18,7 @@ class FakeCameraV3Node:
 
         # GET TEST DATA
         self.video_path = video_path
+        print(self.video_path)
         self.test_label = test_label
         self.fps = fps
 
@@ -58,8 +59,8 @@ def main(args):
 
         ret, frame = fake_camera_node.cap.read()
         frame = np.array(frame)
-        print(frame.shape)
-        fake_camera_msg.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(frame, "passthrough")
+        print("frame publishing...")
+        fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(frame, "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
 
         rate.sleep()
@@ -68,7 +69,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Fake Camera Node')
     args = parser.parse_args()
-    parser.add_argument('--video_path', type=str, default='/home/roboslice/ee290/eval_vid_0.avi')
+    parser.add_argument('--video_path', type=str, default='/home/roboslice/ee290/eval_vid_1.avi')
     parser.add_argument('--test_label', type=int, default=0)
     parser.add_argument('--fps', type=int, default=60)
     args = parser.parse_args()
