@@ -9,6 +9,7 @@ import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Empty
 from cv_bridge import CvBridge # INSTALL ON PI
+import argparse
 
 
 class FakeCameraV3Node:
