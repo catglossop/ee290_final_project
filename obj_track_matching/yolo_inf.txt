@@ -1,0 +1,5 @@
+"yolov8n-seg" : 375.80 
+"yolov8s-seg" : 402.84
+"yolov8m-seg" : 475.05
+"yolov8l-seg" : 572.87
+"yolov8x-seg" : 674.85
