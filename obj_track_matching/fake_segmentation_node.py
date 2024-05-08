@@ -31,9 +31,9 @@ class FakeSegmentationNode:
     
     def image_callback(self, msg):
         self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
-
+        print("GOT FRAME")
         result = self.model.track(self.curr_frame)[0]
-
+        print("GOT RESULT")
         mask = np.zeros_like(self.curr_frame[..., 0], np.int8)
         viz_mask = np.zeros_like(self.curr_frame[..., 0], np.int8)
         nseg = len(result)
@@ -47,6 +47,7 @@ class FakeSegmentationNode:
         
         self.seg_msg = self.bridge.cv2_to_imgmsg(mask, "passthrough")
         self.seg_pub.publish(self.seg_msg)
+        print("RESULT PUBLISHED")
         if self.viz:
             self.viz_msg = self.bridge.cv2_to_imgmsg(self.curr_frame, "passthrough")
             self.viz_pub.publish(self.viz_msg)
