@@ -73,7 +73,6 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Fake Camera Node')
-    args = parser.parse_args()
     parser.add_argument('--video_path', type=str, default='/home/roboslice/ee290/eval_vid_1.avi')
     parser.add_argument('--gt_path', type=str, default='/home/roboslice/ee290/eval_vid_1_gt.avi')
     parser.add_argument('--test_label', type=int, default=0)

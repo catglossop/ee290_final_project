@@ -17,7 +17,7 @@ class FakeSegmentationNode:
 
     def __init__(self, model_path, viz=False):
 
-        self.image_sub = rospy.Subscriber('/yolo/camera/color/image_raw', Empty, self.image_callback)
+        self.image_sub = rospy.Subscriber('/yolo/camera/color/image_raw', Image, self.image_callback)
         self.seg_pub = rospy.Publisher('/yolo/segmentation/image_raw', Image, queue_size=10)
         self.viz_pub = rospy.Publisher('/yolo/seg_viz/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
@@ -32,6 +32,7 @@ class FakeSegmentationNode:
         self.curr_frame = None
     
     def image_callback(self, msg):
+        print("image incoming")
         self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         print("GOT FRAME")
         result = self.model.track(self.curr_frame)[0]
@@ -39,13 +40,13 @@ class FakeSegmentationNode:
         mask = np.zeros_like(self.curr_frame[..., 0], np.int8)
         viz_mask = np.zeros_like(self.curr_frame[..., 0], np.int8)
         nseg = len(result)
-        for ci, c in enumerate(res):
+        for ci, c in enumerate(result):
             contour = c.masks.xy.pop()
             contour = contour.astype(np.int32)
-            contour = contour, reshape((-1, 1, 2))
-            mask = cv.drawContours(mask, [contour], -1, ci+1, cv2.FILLED)
+            contour = contour.reshape((-1, 1, 2))
+            mask = cv.drawContours(mask, [contour], -1, ci+1, cv.FILLED)
             if self.viz:
-                viz_mask = cv.drawContours(viz_mask, [contour], -1, (ci+1)*(255//nseg), cv2.FILLED)
+                viz_mask = cv.drawContours(viz_mask, [contour], -1, (ci+1)*(255//nseg), cv.FILLED)
         
         self.seg_msg = self.bridge.cv2_to_imgmsg(mask, "passthrough")
         self.seg_pub.publish(self.seg_msg)
@@ -58,6 +59,7 @@ def main(args):
 
     rospy.init_node('fake_segmentation_node', anonymous=True)
     fake_seg_node = FakeSegmentationNode(model_path=args.yolo_model, viz=args.viz)
+    print("Waiting for images...")
     rospy.spin()
 
 if __name__ == '__main__':
