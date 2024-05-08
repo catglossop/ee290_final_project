@@ -49,7 +49,7 @@ class FakeSegmentationNode:
         self.seg_pub.publish(self.seg_msg)
         print("RESULT PUBLISHED")
         if self.viz:
-            self.viz_msg = self.bridge.cv2_to_imgmsg(self.curr_frame, "passthrough")
+            self.viz_msg = self.bridge.cv2_to_imgmsg(viz_mask, "passthrough")
             self.viz_pub.publish(self.viz_msg)
 
 def main(args):
