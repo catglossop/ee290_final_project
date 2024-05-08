@@ -9,70 +9,61 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Empty
 import rospy
 from cv_bridge import CvBridge # INSTALL ON PI
+from ultralytics import YOLO
+import torch
 
 class FakeSegmentationNode:
 
-    def __init__(self):
-        data_path = "/home/proj206a/data/SegTrackv2"
-        gt_path = os.path.join(data_path, "GroundTruth")
-        test = "frog"
-        gt_test_path = os.path.join(gt_path, test)
+    def __init__(self, model_path, viz=False):
 
-        seg_frames = {1: []}
-        for sub in sorted(os.listdir(os.path.join(gt_test_path))):
-            sub_path = os.path.join(gt_test_path, sub)
-            if os.path.isdir(sub_path):
-                seg_frames[int(sub)] = []
-                for img in sorted(os.listdir(sub_path)):
-                    frame = iio.imread(os.path.join(sub_path,img))
-                    seg_frames[int(sub)].append(frame[..., 0])
-            else:
-                frame = iio.imread(sub_path)
-                seg_frames[1].append(frame[..., 0])
-
-        # Combine together frames
-        combined_frames = []
-        viz_combined_frames = []
-        for idx in enumerate(seg_frames[1]):
-            combined_frame = np.zeros_like(seg_frames[1][idx[0]])
-            viz_combined_frame = np.zeros_like(seg_frames[1][idx[0]])
-            for key in seg_frames.keys():
-                combined_frame[seg_frames[key][idx[0]] == 255] = key
-                viz_combined_frame[seg_frames[key][idx[0]] == 255] = key*(255//len(seg_frames.keys()))
-            combined_frames.append(combined_frame)
-            viz_combined_frames.append(viz_combined_frame)
-       
-        self.seg_frames = combined_frames[::self.se]
-        self.viz_combined_frames = viz_combined_frames[::15]
-        self.frame_count = 0
-
-        self.reset_sub = rospy.Subscriber('/camera/reset', Empty, self.reset_callback)
+        self.image_sub = rospy.Subscriber('/camera/color/image_raw', Empty, self.image_callback)
         self.seg_pub = rospy.Publisher('/segmentation/image_raw', Image, queue_size=10)
         self.viz_pub = rospy.Publisher('/seg_viz/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
         self.viz_msg = Image()
         self.bridge = CvBridge()
+        torch.cuda.set_device(0)
+        self.model = YOLO(model_path)
+        self.viz = viz
 
-    def reset_callback(self, msg):
-        self.frame_count = 0
+        self.curr_frame = None
+    
+    def image_callback(self, msg):
+        self.curr_frame = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
 
-def main():
+        result = self.model.track(self.curr_frame)[0]
+
+        mask = np.zeros_like(self.curr_frame[..., 0], np.int8)
+        viz_mask = np.zeros_like(self.curr_frame[..., 0], np.int8)
+        nseg = len(result)
+        for ci, c in enumerate(res):
+            contour = c.masks.xy.pop()
+            contour = contour.astype(np.int32)
+            contour = contour, reshape((-1, 1, 2))
+            mask = cv.drawContours(mask, [contour], -1, ci+1, cv2.FILLED)
+            if self.viz:
+                viz_mask = cv.drawContours(viz_mask, [contour], -1, (ci+1)*(255//nseg), cv2.FILLED)
+        
+        self.seg_msg = self.bridge.cv2_to_imgmsg(mask, "passthrough")
+        self.seg_pub.publish(self.seg_msg)
+        if self.viz:
+            self.viz_msg = self.bridge.cv2_to_imgmsg(self.curr_frame, "passthrough")
+            self.viz_pub.publish(self.viz_msg)
+
+def main(args):
 
     rospy.init_node('fake_segmentation_node', anonymous=True)
-    fake_seg_node = FakeSegmentationNode()
-    rate = rospy.Rate(4) # 4 Hz (for ever 15 frames published, 1 is published to the topic)
-
-    while not rospy.is_shutdown():
-        print("Sending seg image")
-        fake_seg_node.seg_msg = fake_seg_node.bridge.cv2_to_imgmsg(fake_seg_node.seg_frames[fake_seg_node.frame_count%len(fake_seg_node.seg_frames)], "passthrough")
-        fake_seg_node.viz_msg = fake_seg_node.bridge.cv2_to_imgmsg(fake_seg_node.viz_combined_frames[fake_seg_node.frame_count%len(fake_seg_node.viz_combined_frames)], "passthrough")
-        fake_seg_node.seg_pub.publish(fake_seg_node.seg_msg)
-        fake_seg_node.viz_pub.publish(fake_seg_node.viz_msg)
-        fake_seg_node.frame_count += 1
-        rate.sleep()
+    fake_seg_node = FakeSegmentationNode(model_path=args.yolo_model, viz=args.viz)
+    rospy.spin()
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(
+                    prog='SegNode',
+                    description='Segement camera stream')
+    parser.add_argument('--yolo_model', type=str, default='yolov8n-seg.pt')
+    parser.add_argument('--viz', type=bool, default=False)
+    args = parser.parse_args()
+    main(args)
 
 
     
