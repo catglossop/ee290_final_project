@@ -23,8 +23,8 @@ class FakeCameraV3Node:
 
         # self.input_frames = input_frames
         # self.frame_count = 0
-        self.input_pub = rospy.Publisher('/camera/color/image_raw', Image, queue_size=10)
-        self.reset_pub = rospy.Publisher('/camera/reset', Empty, queue_size=10)
+        self.input_pub = rospy.Publisher('/yolo/camera/color/image_raw', Image, queue_size=10)
+        self.reset_pub = rospy.Publisher('/yolo/camera/reset', Empty, queue_size=10)
         self.image_msg = Image()
         self.bridge = CvBridge()
 
@@ -49,7 +49,7 @@ class FakeCameraV3Node:
 
 def main(args):
     print(args)
-    rospy.init_node('fake_camera_node', anonymous=True)
+    rospy.init_node('fake_camera_v3_node', anonymous=True)
     fake_camera_node = FakeCameraV3Node(args.video_path, args.test_label, args.fps)
     rate = rospy.Rate(fake_camera_node.fps) # 60Hz
 

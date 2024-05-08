@@ -17,9 +17,9 @@ class FakeSegmentationNode:
 
     def __init__(self, model_path, viz=False):
 
-        self.image_sub = rospy.Subscriber('/camera/color/image_raw', Empty, self.image_callback)
-        self.seg_pub = rospy.Publisher('/segmentation/image_raw', Image, queue_size=10)
-        self.viz_pub = rospy.Publisher('/seg_viz/image_raw', Image, queue_size=10)
+        self.image_sub = rospy.Subscriber('/yolo/camera/color/image_raw', Empty, self.image_callback)
+        self.seg_pub = rospy.Publisher('/yolo/segmentation/image_raw', Image, queue_size=10)
+        self.viz_pub = rospy.Publisher('/yolo/seg_viz/image_raw', Image, queue_size=10)
         self.seg_msg = Image()
         self.viz_msg = Image()
         self.bridge = CvBridge()
