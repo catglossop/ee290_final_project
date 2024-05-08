@@ -58,6 +58,7 @@ def main(args):
 
         ret, frame = fake_camera_node.cap.read()
         frame = np.array(frame)
+        print(frame.shape)
         fake_camera_msg.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(frame, "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
 
