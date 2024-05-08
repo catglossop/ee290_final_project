@@ -69,6 +69,7 @@ if __name__ == '__main__':
     parser.add_argument('--video_path', type=str, default='/home/roboslice/ee290/eval_vid_0.avi')
     parser.add_argument('--test_label', type=int, default=0)
     parser.add_argument('--fps', type=int, default=60)
+    args = parser.parse_args()
     main(args)
 
 
