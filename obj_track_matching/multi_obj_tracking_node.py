@@ -41,6 +41,7 @@ class MultiObjectTrackingNode:
         self.loop_time = []
         self.loop_clock = []
         self.eval_count = 0
+        self.MODE = "ASYNC"
 
         self.curr_frame = None
         self.prev_frame = None
@@ -146,15 +147,20 @@ class MultiObjectTrackingNode:
         if self.seg_updated:
             self.seg_pts = {}
             for nseg in range(1, self.num_segs+1):
-                arg_mask = np.argwhere(self.curr_seg == nseg)
-                Px_max = arg_mask[np.argmax(arg_mask[:,0]), :]
-                Px_min = arg_mask[np.argmin(arg_mask[:,0]), :]
-                Py_max = arg_mask[np.argmax(arg_mask[:,1]), :]
-                Py_min = arg_mask[np.argmin(arg_mask[:,1]), :]
+                curr_mask = np.where(self.curr_seg==nseg, 255, 0)
+                self.seg_pts[nseg] = self.get_polygon(curr_mask)
+                self.prev_seg_pts = self.seg_pts
 
-                # Turn the points into an array
-                self.seg_pts[nseg] = np.array([Px_min[:2], Py_max[:2], Px_max[:2], Py_min[:2]])
-                self.seg_pts[nseg] = self.seg_pts[nseg].reshape(-1, 1, 2)
+                if self.MODE == "ASYNC":
+                    # Compute segmentation region centroid 
+                    curr_centroid = np.mean(self.prev_seg_pts[nseg], axis=0)
+                    seg_centroid = np.mean(self.seg_pts[nseg], axis=0)
+                    img = self.curr_frame.copy()
+                    img = cv.polylines(img, [np.flip(self.prev_seg_pts[nseg], axis=2)], True, (255,255,0), 1)
+                    img = cv.polylines(img, [np.flip(self.seg_pts[nseg], axis=2)], True, (0,255,255), 1)
+                    self.seg_pts[nseg] = self.seg_pts[nseg] + (curr_centroid - seg_centroid).astype(np.int64)
+
+                self.init_seg_pts = self.seg_pts
             
             if self.DEBUG:
                 for nseg in range(1, self.num_segs+1):
