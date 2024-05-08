@@ -50,7 +50,7 @@ def main(args):
 
     rospy.init_node('fake_camera_node', anonymous=True)
     fake_camera_node = FakeCameraV3Node(video_path=args.video_path, test_label=args.test_label, fps=args.fps)
-    rate = rospy.Rate(fake_camera_node.fps)) # 60Hz
+    rate = rospy.Rate(fake_camera_node.fps) # 60Hz
 
 
     while not rospy.is_shutdown():
