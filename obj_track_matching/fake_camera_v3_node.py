@@ -21,8 +21,8 @@ class FakeCameraV3Node:
         self.test_label = test_label
         self.fps = fps
 
-        self.input_frames = input_frames
-        self.frame_count = 0
+        # self.input_frames = input_frames
+        # self.frame_count = 0
         self.input_pub = rospy.Publisher('/camera/color/image_raw', Image, queue_size=10)
         self.reset_pub = rospy.Publisher('/camera/reset', Empty, queue_size=10)
         self.image_msg = Image()
