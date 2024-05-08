@@ -16,13 +16,14 @@ class FakeCameraNode:
     def __init__(self):
 
         # GET TEST DATA
-        data_path = "/home/proj206a"
+        data_path = "/home/ee290"
         input_path = os.path.join(data_path, "extracted_frames")
         input_test_path = input_path
         input_frames = []
 
         for img in sorted(os.listdir(os.path.join(input_test_path))):
             frame = cv.imread(os.path.join(input_test_path, img))
+            frame = cv.resize(frame, (360, 640))
             input_frames.append(frame)
 
         gt_path = os.path.join(data_path, "segmented_video")
@@ -32,6 +33,7 @@ class FakeCameraNode:
         viz_combined_frames = []
         for img in sorted(os.listdir(os.path.join(gt_test_path))):
             frame = cv.imread(os.path.join(gt_test_path, img))[...,0]
+            frame = cv.resize(frame, (360, 640))
             combined_frames.append(frame)
             viz_combined_frames.append((frame*(255//np.max(frame))))
 
