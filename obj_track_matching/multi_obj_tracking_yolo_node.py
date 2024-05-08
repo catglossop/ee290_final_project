@@ -20,14 +20,14 @@ class MultiObjectTrackingNode:
         self.VISUALIZE = True
         self.DEBUG = False
         self.test = "drift"
-        self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
-        self.gt_sub = rospy.Subscriber("/ground_truth/image_raw", Image, self.gt_callback)
-        self.input_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.input_callback)
-        self.reset_sub = rospy.Subscriber("/camera/reset", Empty, self.reset_callback)
+        self.seg_sub = rospy.Subscriber("/yolo/segmentation/image_raw", Image, self.seg_callback)
+        self.gt_sub = rospy.Subscriber("/yolo/ground_truth/image_raw", Image, self.gt_callback)
+        self.input_sub = rospy.Subscriber("/yolo/camera/color/image_raw", Image, self.input_callback)
+        self.reset_sub = rospy.Subscriber("/yolo/camera/reset", Empty, self.reset_callback)
         self.viz_img = Image()
-        self.annotate_pub = rospy.Publisher("/image_annotated", Image, queue_size=10)
+        self.annotate_pub = rospy.Publisher("/yolo/image_annotated", Image, queue_size=10)
         self.mask_img = Image()
-        self.mask_pub = rospy.Publisher("/mask", Image, queue_size=10)
+        self.mask_pub = rospy.Publisher("/yolo/mask", Image, queue_size=10)
         self.cv_bridge = CvBridge()
         self.seg_updated = False
         
@@ -40,7 +40,6 @@ class MultiObjectTrackingNode:
         self.IOU_gt = []
         self.loop_time = []
         self.loop_clock = []
-        self.centroid_diff = []
         self.eval_count = 0
         self.MODE = "ASYNC"
 
@@ -50,12 +49,11 @@ class MultiObjectTrackingNode:
         self.gt_seg = None
         self.initialized = False
 
-        self.ious_per_fps = []
-        self.ious_gt_per_fps = []
-        self.loop_time_per_fps = []
-        self.loop_clock_per_fps = []
-        self.centroid_diff_per_fps = []
-        self.periods = [10, 20, 30, 40, 50, 60, 70]
+        # self.ious_per_fps = []
+        # self.ious_gt_per_fps = []
+        # self.loop_time_per_fps = []
+        # self.loop_clock_per_fps = []
+        self.centroid_diff = []
 
         for f in glob.glob("output/perf_eval_*.jpg"):
             os.remove(f)
@@ -103,7 +101,7 @@ class MultiObjectTrackingNode:
         self.gt_num_segs = np.max(np.unique(self.gt_seg))
     
     def reset_callback(self, msg):
-
+        print("IN RESET CALLBACK")
         # print("IOU: ", np.mean(self.IOU_est))
         # print("GT IOU: ", np.mean(self.IOU_gt))
         # print("Loop time: ", np.mean(self.loop_time))
@@ -120,24 +118,20 @@ class MultiObjectTrackingNode:
             ax[0].set_title("IOU vs Frame")
             ax[1].set_title("Loop Time vs Frame")
             plt.savefig(f'output/{self.test}_perf_eval_{self.eval_count}.png')
-        self.eval_count += 1
-        if self.eval_count%5 == 0 and self.eval_count > 0:
-            self.IOU_gt = [iou for iou in self.IOU_gt if not np.isnan(iou)]
-            self.ious_per_fps.append(np.mean(self.IOU_est))
-            self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
-            self.loop_time_per_fps.append(np.mean(self.loop_time))
-            self.loop_clock_per_fps.append(np.mean(self.loop_clock))
-            self.centroid_diff_per_fps.append(np.mean(self.centroid_diff))
-            self.IOU_est = []
-            self.IOU_gt = []
-            self.loop_time = []
-            self.loop_clock = []
-            self.centroid_diff = []
+
+        # self.IOU_gt = [iou for iou in self.IOU_gt if not np.isnan(iou)]
+        # self.ious.append(np.mean(self.IOU_est))
+        # self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
+        # self.loop_time_per_fps.append(np.mean(self.loop_time))
+        # self.loop_clock_per_fps.append(np.mean(self.loop_clock))
+        # self.IOU_est = []
+        # self.IOU_gt = []
+        # self.loop_time = []
+        # self.loop_clock = []
         
-        if self.eval_count == 35:
-            data_arr = np.array([self.periods, self.ious_per_fps, self.ious_gt_per_fps, self.loop_time_per_fps, self.loop_clock_per_fps, self.centroid_diff_per_fps])
-            np.save(f"output/{self.test}_perf_eval.npy", data_arr)
-            print("DONE EVAL")
+        data_arr = np.array([self.IOU_est, self.IOU_gt, self.loop_time, self.loop_clock, self.centroid_diff])
+        np.save(f"output/{self.test}_perf_eval.npy", data_arr)
+        print("DONE EVAL")
 
     def input_callback(self, msg):
         self.prev_frame = self.curr_frame
@@ -287,8 +281,7 @@ class MultiObjectTrackingNode:
                 gt_seg_pts = self.get_polygon(gt_mask)
                 gt_centroid = np.mean(gt_seg_pts, axis=0)
                 curr_centroid = np.mean(n_seg_pts, axis=0)
-
-                centroid_diff.append(np.linalg.norm(gt_centroid - curr_centroid))
+                centroid_diff.append(np.linalg.norm(gt_centroid - curr_centroid))  
 
                 self.curr_mask_out = cv.fillPoly(self.curr_mask_out, [np.flip(n_seg_pts, axis=2)], int(nseg*(255//self.num_segs)))
             
@@ -298,7 +291,7 @@ class MultiObjectTrackingNode:
             self.loop_clock.append((self.end_tick-self.start_tick)/cv.getTickFrequency()*1000)
             self.IOU_est.append(np.array(ious).mean())
             self.IOU_gt.append(np.array(ious_gt).mean())
-            self.centroid_diff.append(np.mean(np.array(centroid_diff)))
+            self.centroid_diff.append(np.array(centroid_diff).mean())
 
             self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask_out, encoding="passthrough")
             self.mask_pub.publish(self.mask_img)
