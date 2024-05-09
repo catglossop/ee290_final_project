@@ -20,14 +20,14 @@ class MultiObjectTrackingNode:
         self.VISUALIZE = True
         self.DEBUG = False
         self.test = "drift"
-        self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
-        self.gt_sub = rospy.Subscriber("/ground_truth/image_raw", Image, self.gt_callback)
-        self.input_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.input_callback)
-        self.reset_sub = rospy.Subscriber("/camera/reset", Empty, self.reset_callback)
+        self.seg_sub = rospy.Subscriber("/yolo/segmentation/image_raw", Image, self.seg_callback)
+        self.gt_sub = rospy.Subscriber("/yolo/ground_truth/image_raw", Image, self.gt_callback)
+        self.input_sub = rospy.Subscriber("/yolo/camera/color/image_raw", Image, self.input_callback)
+        self.reset_sub = rospy.Subscriber("/yolo/camera/reset", Empty, self.reset_callback)
         self.viz_img = Image()
-        self.annotate_pub = rospy.Publisher("/image_annotated", Image, queue_size=10)
+        self.annotate_pub = rospy.Publisher("/yolo/image_annotated", Image, queue_size=10)
         self.mask_img = Image()
-        self.mask_pub = rospy.Publisher("/mask", Image, queue_size=10)
+        self.mask_pub = rospy.Publisher("/yolo/mask", Image, queue_size=10)
         self.cv_bridge = CvBridge()
         self.seg_updated = False
         
@@ -313,7 +313,7 @@ class MultiObjectTrackingNode:
 
 def main():
 
-    rospy.init_node('multi_obj_tracking_node', anonymous=True)
+    rospy.init_node('yolo_multi_obj_tracking_node', anonymous=True)
     multi_obj_tracking_node = MultiObjectTrackingNode()
 
     rospy.spin()

@@ -10,12 +10,18 @@ import matplotlib.pyplot as plt
 import copy
 import time
 from PIL import Image 
+import cProfile
+import pstats 
+from pstats import SortKey
 
 ### SegTrackv2
 data_path = "/Users/charlesgordon/Desktop/Research/290/Data/data_sets/SegTrackv2"
 gt_path = os.path.join(data_path, "GroundTruth")
 input_path = os.path.join(data_path, "JPEGImages")
-test = "monkeydog"
+#test = "girl"
+#test = "frog"
+#test = "drift"
+test = "bird_of_paradise"
 
 if test == "human":
     input_test_path = os.path.join(input_path)
@@ -292,7 +298,8 @@ class MultiObjTracking:
     def prop_loop(self):
         #For now, just run for 5 frames
         #while self.frame_idx < len(self.input_frames)-2:
-        while self.frame_idx < 5:
+        frame_limit = 10 
+        while self.frame_idx < frame_limit:
 
             start = time.time()
             # If we have reached SEG_PERIOD
@@ -448,11 +455,15 @@ class MultiObjTracking:
         """
 
 def main():
-    time1 = cv.getTickCount()
-    print("Running Multi Object Tracking...")
-    MOT = MultiObjTracking(test, gt_test_path, input_test_path, VISUALIZE=False)
-    time2 = cv.getTickCount()
-    print("Script completed in : ", (time2-time1)/cv.getTickFrequency(), "s")
+    with cProfile.Profile() as pr: 
+        print("Running Multi Object Tracking...")
+        frame_limit = 10
+        MOT = MultiObjTracking(test, gt_test_path, input_test_path, VISUALIZE=False)
+    results = pstats.Stats(pr)
+    output_file_name = "profiles_bird_10frames.prof" 
+    results.dump_stats(output_file_name)
+    results.sort_stats(SortKey.CUMULATIVE).print_stats()
+
 
 
 if __name__ == "__main__":
