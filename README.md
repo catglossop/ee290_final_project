@@ -1,4 +1,4 @@
-# ee290_final_project
+# Edge Semantic Segmentation for Robot Control
 
 Contributors: Catherine Glossop, Charles Gordon, Bear Häon 
 
