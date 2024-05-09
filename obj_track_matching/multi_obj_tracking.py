@@ -8,7 +8,7 @@ import time
 from PIL import Image 
 
 ### SegTrackv2
-data_path = "/Users/catherineglossop/ee290_final_project/data/SegTrackv2"
+data_path = "/home/ee290/data/SegTrackv2"
 gt_path = os.path.join(data_path, "GroundTruth")
 input_path = os.path.join(data_path, "JPEGImages")
 
@@ -27,7 +27,7 @@ else:
 
 class MultiObjTracking: 
 
-    def __init__(self, test, gt_path, input_path, image_size=(640, 360), SEG_PERIOD=10, DEBUG=False, VISUALIZE=True, PLOT=False, scale=1):
+    def __init__(self, test, gt_path, input_path, image_size=(640, 360), SEG_PERIOD=10, DEBUG=False, VISUALIZE=False, PLOT=False, scale=1):
         self.image_size = image_size
         self.test = test
         self.load_data(test, gt_path, input_path)
@@ -149,7 +149,6 @@ class MultiObjTracking:
         Px_min = arg_mask[np.argmin(arg_mask[:,0]), :]
         Py_max = arg_mask[np.argmax(arg_mask[:,1]), :]
         Py_min = arg_mask[np.argmin(arg_mask[:,1]), :]
-
 
         # Turn the points into an array
         seg_pts = np.array([Px_min, Py_max, Px_max, Py_min])

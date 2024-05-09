@@ -9,6 +9,7 @@ import rospy
 from sensor_msgs.msg import Image
 from std_msgs.msg import Empty
 from cv_bridge import CvBridge # INSTALL ON PI
+import re
 
 
 class FakeCameraNode:
@@ -16,25 +17,30 @@ class FakeCameraNode:
     def __init__(self):
 
         # GET TEST DATA
-        data_path = "/home/proj206a/data/SegTrackv2"
+        data_path = "/home/ee290/data/SegTrackv2"
         input_path = os.path.join(data_path, "JPEGImages")
-        test = "drift"
+        test = "bird_of_paradise"
+        self.mode = "async"
         input_test_path = os.path.join(input_path, test)
         input_frames = []
-
-        for img in sorted(os.listdir(os.path.join(input_test_path))):
+        paths = os.listdir(os.path.join(input_test_path))
+        paths.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
+        for img in paths:
             frame = cv.imread(os.path.join(input_test_path, img))
             input_frames.append(frame)
 
         gt_path = os.path.join(data_path, "GroundTruth")
         gt_test_path = os.path.join(gt_path, test)
-
+        paths = os.listdir(os.path.join(gt_test_path))
+        paths.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
         seg_frames = {1: []}
-        for sub in sorted(os.listdir(os.path.join(gt_test_path))):
+        for sub in paths:
             sub_path = os.path.join(gt_test_path, sub)
             if os.path.isdir(sub_path):
                 seg_frames[int(sub)] = []
-                for img in sorted(os.listdir(sub_path)):
+                paths = os.listdir(os.path.join(sub_path))
+                paths.sort(key=lambda var:[int(x) if x.isdigit() else x for x in re.findall(r'[^0-9]|[0-9]+', var)])
+                for img in paths:
                     frame = iio.imread(os.path.join(sub_path,img))
                     seg_frames[int(sub)].append(frame[..., 0])
             else:
@@ -60,6 +66,7 @@ class FakeCameraNode:
         self.image_msg = Image()
         self.bridge = CvBridge()
 
+
         self.periods = [10, 20, 30, 40, 50, 60, 70]
         self.seg_period = self.periods.pop(0)
         self.gt_frames = combined_frames
@@ -68,7 +75,6 @@ class FakeCameraNode:
         self.viz_combined_frames = viz_combined_frames[::self.seg_period]
         self.frame_count = 0
         self.seg_count = 0
-
         self.seg_pub = rospy.Publisher('/segmentation/image_raw', Image, queue_size=10)
         self.viz_pub = rospy.Publisher('/seg_viz/image_raw', Image, queue_size=10)
         self.gt_pub = rospy.Publisher('/ground_truth/image_raw', Image, queue_size=10)
@@ -85,19 +91,25 @@ def main():
 
 
     while not rospy.is_shutdown():
+        print("PERIOD: ", fake_camera_node.seg_period)
         if fake_camera_node.frame_count % len(fake_camera_node.input_frames) == 0 and fake_camera_node.frame_count != 0:
+            print("loop finished")
             fake_camera_node.reset_pub.publish(Empty())
             fake_camera_node.frame_count = 0
             fake_camera_node.seg_count = 0
             fake_camera_node.iter_count += 1
             if fake_camera_node.iter_count % 5 == 0:
                 fake_camera_node.seg_period = fake_camera_node.periods.pop(0)
-                fake_camera_node.seg_frames =fake_camera_node.gt_frames[::fake_camera_node.seg_period]
-                fake_camera_node.viz_combined_frames = fake_camera_node.org_viz_combined_frames[::fake_camera_node.seg_period]
+                if fake_camera_node.mode == "sync":
+                    fake_camera_node.seg_frames = fake_camera_node.gt_frames[::fake_camera_node.seg_period]
+                    fake_camera_node.viz_combined_frames = fake_camera_node.org_viz_combined_frames[::fake_camera_node.seg_period]
+                else:
+                    fake_camera_node.seg_frames = fake_camera_node.gt_frames
+                    fake_camera_node.viz_combined_frames = fake_camera_node.org_viz_combined_frames
 
-        fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
+        fake_camera_node.image_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.input_frames[fake_camera_node.frame_count], "passthrough")
         fake_camera_node.input_pub.publish(fake_camera_node.image_msg)
-        fake_camera_node.gt_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.gt_frames[fake_camera_node.frame_count%len(fake_camera_node.input_frames)], "passthrough")
+        fake_camera_node.gt_msg = fake_camera_node.bridge.cv2_to_imgmsg(fake_camera_node.gt_frames[fake_camera_node.frame_count], "passthrough")
         fake_camera_node.gt_pub.publish(fake_camera_node.gt_msg)
         fake_camera_node.frame_count += 1
         if fake_camera_node.frame_count % fake_camera_node.seg_period == 0:

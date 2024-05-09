@@ -17,20 +17,17 @@ class MultiObjectTrackingNode:
 
     def __init__(self):
 
-        self.VISUALIZE = False
+        self.VISUALIZE = True
         self.DEBUG = False
-        self.test = "bird_of_paradise"
-        self.mode = "async"
-        self.output_path = f"{self.test}_output"
-        os.makedirs(self.output_path, exist_ok=True)
-        self.seg_sub = rospy.Subscriber("/segmentation/image_raw", Image, self.seg_callback)
-        self.gt_sub = rospy.Subscriber("/ground_truth/image_raw", Image, self.gt_callback)
-        self.input_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.input_callback)
-        self.reset_sub = rospy.Subscriber("/camera/reset", Empty, self.reset_callback)
+        self.test = "drift"
+        self.seg_sub = rospy.Subscriber("/yolo/segmentation/image_raw", Image, self.seg_callback)
+        self.gt_sub = rospy.Subscriber("/yolo/ground_truth/image_raw", Image, self.gt_callback)
+        self.input_sub = rospy.Subscriber("/yolo/camera/color/image_raw", Image, self.input_callback)
+        self.reset_sub = rospy.Subscriber("/yolo/camera/reset", Empty, self.reset_callback)
         self.viz_img = Image()
-        self.annotate_pub = rospy.Publisher("/image_annotated", Image, queue_size=10)
+        self.annotate_pub = rospy.Publisher("/yolo/image_annotated", Image, queue_size=10)
         self.mask_img = Image()
-        self.mask_pub = rospy.Publisher("/mask", Image, queue_size=10)
+        self.mask_pub = rospy.Publisher("/yolo/mask", Image, queue_size=10)
         self.cv_bridge = CvBridge()
         self.seg_updated = False
         
@@ -43,25 +40,22 @@ class MultiObjectTrackingNode:
         self.IOU_gt = []
         self.loop_time = []
         self.loop_clock = []
-        self.centroid_diff = []
         self.eval_count = 0
+        self.MODE = "ASYNC"
 
         self.curr_frame = None
         self.prev_frame = None
         self.curr_seg = None
         self.gt_seg = None
         self.initialized = False
-        self.scale = 1
-        self.seg_pts = {}
 
-        self.ious_per_fps = []
-        self.ious_gt_per_fps = []
-        self.loop_time_per_fps = []
-        self.loop_clock_per_fps = []
-        self.centroid_diff_per_fps = []
-        self.periods = [10, 20, 30, 40, 50, 60, 70]
+        # self.ious_per_fps = []
+        # self.ious_gt_per_fps = []
+        # self.loop_time_per_fps = []
+        # self.loop_clock_per_fps = []
+        self.centroid_diff = []
 
-        for f in glob.glob(os.path.join(self.output_path, "perf_eval_*.png")):
+        for f in glob.glob("output/perf_eval_*.jpg"):
             os.remove(f)
 
     def resize_polygon(self, poly):
@@ -71,13 +65,13 @@ class MultiObjectTrackingNode:
         # scale the points
         poly_new = ((poly_new - centroid) * self.scale + centroid).astype(np.int64)
         # visualize
-        # if self.VISUALIZE:
-        #     img = self.curr_frame.copy()
-        #     img = cv.polylines(img, [np.flip(poly_new, axis=2)], True, (255,255,255), 1)
-        #     img = cv.polylines(img, [np.flip(poly.reshape(-1, 1, 2), axis=2)], True, (255,255,255), 1)
-        #     cv.imshow("seg region", img)
-        #     cv.waitKey(0)
-        #     cv.destroyAllWindows()
+        if self.VISUALIZE:
+            img = self.curr_frame.copy()
+            img = cv.polylines(img, [np.flip(poly_new, axis=2)], True, (255,255,255), 1)
+            img = cv.polylines(img, [np.flip(poly.reshape(-1, 1, 2), axis=2)], True, (255,255,255), 1)
+            cv.imshow("seg region", img)
+            cv.waitKey(0)
+            cv.destroyAllWindows()
 
         return poly_new
     
@@ -88,6 +82,7 @@ class MultiObjectTrackingNode:
         Py_max = arg_mask[np.argmax(arg_mask[:,1]), :]
         Py_min = arg_mask[np.argmin(arg_mask[:,1]), :]
 
+
         # Turn the points into an array
         seg_pts = np.array([Px_min, Py_max, Px_max, Py_min])
         seg_pts = seg_pts.reshape(-1, 1, 2)
@@ -96,19 +91,17 @@ class MultiObjectTrackingNode:
 
     def seg_callback(self, msg):
         self.prev_seg = self.curr_seg
-        self.curr_seg = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width)
+        self.curr_seg = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         self.num_segs = np.max(np.unique(self.curr_seg))
         self.seg_updated = True
         self.seg_color = np.random.randint(0, 255, (self.num_segs*2, 3))
     
     def gt_callback(self, msg):
-        self.gt_seg = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width)
+        self.gt_seg = np.frombuffer(msg.data, dtype=np.uint8).reshape(msg.height, msg.width, -1)
         self.gt_num_segs = np.max(np.unique(self.gt_seg))
     
     def reset_callback(self, msg):
-        self.seg_pts = {}
-        self.prev_seg_pts = {}
-        self.initialized = False
+        print("IN RESET CALLBACK")
         # print("IOU: ", np.mean(self.IOU_est))
         # print("GT IOU: ", np.mean(self.IOU_gt))
         # print("Loop time: ", np.mean(self.loop_time))
@@ -124,31 +117,21 @@ class MultiObjectTrackingNode:
             ax[1].set_ylabel("Time (ms)")
             ax[0].set_title("IOU vs Frame")
             ax[1].set_title("Loop Time vs Frame")
-            plt.savefig(os.path.join(self.output_path, f"{self.test}_perf_eval_{self.eval_count}.png"))
-        self.eval_count += 1
-        if self.eval_count%5 == 0 and self.eval_count > 0:
-            # print(self.IOU_est)
-            self.IOU_est = [iou for iou in self.IOU_est if not np.isnan(iou)]
-            self.IOU_gt = [iou for iou in self.IOU_gt if not np.isnan(iou)]
-            self.ious_per_fps.append(np.mean(self.IOU_est))
-            self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
-            self.loop_time_per_fps.append(np.mean(self.loop_time))
-            self.loop_clock_per_fps.append(np.mean(self.loop_clock))
-            self.centroid_diff = [diff for diff in self.centroid_diff if not np.isnan(diff)]
-            self.centroid_diff_per_fps.append(np.mean(self.centroid_diff))
-            self.IOU_est = []
-            self.IOU_gt = []
-            self.loop_time = []
-            self.loop_clock = []
-            self.centroid_diff = []
-            self.seg_pts = {}
-            self.prev_seg_pts = {}
-            # self.init_seg_pts = {}
+            plt.savefig(f'output/{self.test}_perf_eval_{self.eval_count}.png')
+
+        # self.IOU_gt = [iou for iou in self.IOU_gt if not np.isnan(iou)]
+        # self.ious.append(np.mean(self.IOU_est))
+        # self.ious_gt_per_fps.append(np.mean(self.IOU_gt))
+        # self.loop_time_per_fps.append(np.mean(self.loop_time))
+        # self.loop_clock_per_fps.append(np.mean(self.loop_clock))
+        # self.IOU_est = []
+        # self.IOU_gt = []
+        # self.loop_time = []
+        # self.loop_clock = []
         
-        if self.eval_count == 35:
-            data_arr = np.array([self.periods, self.ious_per_fps, self.ious_gt_per_fps, self.loop_time_per_fps, self.loop_clock_per_fps, self.centroid_diff_per_fps])
-            np.save(os.path.join(self.output_path, f"{self.test}_perf_eval_{self.mode}.npy"), data_arr)
-            print("DONE EVAL")
+        data_arr = np.array([self.IOU_est, self.IOU_gt, self.loop_time, self.loop_clock, self.centroid_diff])
+        np.save(f"output/{self.test}_perf_eval.npy", data_arr)
+        print("DONE EVAL")
 
     def input_callback(self, msg):
         self.prev_frame = self.curr_frame
@@ -157,24 +140,24 @@ class MultiObjectTrackingNode:
         self.start = time.time()
         self.start_tick = cv.getTickCount()
 
+        
         if self.seg_updated:
-            self.prev_seg_pts = {}
-            if len(self.seg_pts.keys()) != 0:
-                self.prev_seg_pts = self.seg_pts.copy()
             self.seg_pts = {}
             for nseg in range(1, self.num_segs+1):
                 curr_mask = np.where(self.curr_seg==nseg, 255, 0)
                 self.seg_pts[nseg] = self.get_polygon(curr_mask)
+                self.prev_seg_pts = self.seg_pts
 
-                if self.mode == "async":
-                    if len(self.prev_seg_pts.keys()) != 0:
-                        # Compute segmentation region centroid 
-                        curr_centroid = np.mean(self.prev_seg_pts[nseg], axis=0)
-                        seg_centroid = np.mean(self.seg_pts[nseg], axis=0)
-                        img = self.curr_frame.copy()
-                        img = cv.polylines(img, [np.flip(self.prev_seg_pts[nseg], axis=2)], True, (255,255,0), 1)
-                        img = cv.polylines(img, [np.flip(self.seg_pts[nseg], axis=2)], True, (0,255,255), 1)
-                        self.seg_pts[nseg] = self.seg_pts[nseg] + (curr_centroid - seg_centroid).astype(np.int64)
+                if self.MODE == "ASYNC":
+                    # Compute segmentation region centroid 
+                    curr_centroid = np.mean(self.prev_seg_pts[nseg], axis=0)
+                    seg_centroid = np.mean(self.seg_pts[nseg], axis=0)
+                    img = self.curr_frame.copy()
+                    img = cv.polylines(img, [np.flip(self.prev_seg_pts[nseg], axis=2)], True, (255,255,0), 1)
+                    img = cv.polylines(img, [np.flip(self.seg_pts[nseg], axis=2)], True, (0,255,255), 1)
+                    self.seg_pts[nseg] = self.seg_pts[nseg] + (curr_centroid - seg_centroid).astype(np.int64)
+
+                self.init_seg_pts = self.seg_pts
             
             if self.DEBUG:
                 for nseg in range(1, self.num_segs+1):
@@ -263,15 +246,13 @@ class MultiObjectTrackingNode:
                     matrix, _ = cv.findHomography(u_pts, v_pts, cv.RANSAC, 5.0)
                     n_seg_pts = cv.perspectiveTransform(n_seg_pts.astype(np.float32), matrix)
                 except: 
-                    # print("Homography failed")
-                    continue
+                    return
 
                 # Perform the transformation on the segmentation zone to get the new segmentation zone
                 self.prev_seg_pts = self.seg_pts
                 n_prev_seg_pts = self.prev_seg_pts[nseg]
 
-                # self.curr_kps_descs[nseg] = (seg_curr_kps, seg_curr_descs)
-                self.curr_kps_descs[nseg] = (curr_kps, curr_descs)
+                self.curr_kps_descs[nseg] = (seg_curr_kps, seg_curr_descs)
 
                 # Measure delta between the previous and current seg pts 
                 delta = n_seg_pts - n_prev_seg_pts
@@ -283,6 +264,12 @@ class MultiObjectTrackingNode:
                 self.curr_mask = cv.fillPoly(np.zeros_like(self.curr_seg), [np.flip(n_seg_pts.astype(np.int64), axis=2)], 255)
                 iou = np.sum(np.logical_and(self.prev_mask, self.curr_mask)) / np.sum(np.logical_or(self.prev_mask, self.curr_mask))
                 ious.append(iou)
+                if iou < 0.5:
+                    n_seg_pts = n_prev_seg_pts
+                    continue
+                n_seg_pts = n_prev_seg_pts + iou*delta
+                n_seg_pts = n_seg_pts.astype(np.int64)
+                self.seg_pts[nseg] = n_seg_pts
 
                 # Get IOU with GT segmentation
                 self.gt_mask = np.where(self.gt_seg==nseg, 255, 0)
@@ -290,19 +277,11 @@ class MultiObjectTrackingNode:
                 ious_gt.append(iou_gt)
 
                 # Get centroid difference with GT segmentation
-                gt_mask = np.where(self.gt_seg==nseg, 255, 0)
+                gt_mask = np.where(self.seg_frames[self.frame_idx]==nseg, 255, 0)
                 gt_seg_pts = self.get_polygon(gt_mask)
                 gt_centroid = np.mean(gt_seg_pts, axis=0)
                 curr_centroid = np.mean(n_seg_pts, axis=0)
-                centroid_diff.append(np.linalg.norm(gt_centroid - curr_centroid))
-
-                if iou < 0.5:
-                    # print("no update")
-                    n_seg_pts = n_prev_seg_pts
-                    continue
-                n_seg_pts = n_prev_seg_pts + iou*delta
-                n_seg_pts = n_seg_pts.astype(np.int64)
-                self.seg_pts[nseg] = n_seg_pts
+                centroid_diff.append(np.linalg.norm(gt_centroid - curr_centroid))  
 
                 self.curr_mask_out = cv.fillPoly(self.curr_mask_out, [np.flip(n_seg_pts, axis=2)], int(nseg*(255//self.num_segs)))
             
@@ -312,7 +291,7 @@ class MultiObjectTrackingNode:
             self.loop_clock.append((self.end_tick-self.start_tick)/cv.getTickFrequency()*1000)
             self.IOU_est.append(np.array(ious).mean())
             self.IOU_gt.append(np.array(ious_gt).mean())
-            self.centroid_diff.append(np.mean(np.array(centroid_diff)))
+            self.centroid_diff.append(np.array(centroid_diff).mean())
 
             self.mask_img = self.cv_bridge.cv2_to_imgmsg(self.curr_mask_out, encoding="passthrough")
             self.mask_pub.publish(self.mask_img)
